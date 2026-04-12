@@ -1,6 +1,6 @@
 const CACHE = 'lumina-v1';
 const FILES = [
-  './lumina-focus.html',
+  './index.html',
   './manifest.json'
 ];
 
