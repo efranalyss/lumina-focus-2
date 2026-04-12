@@ -1,0 +1,3095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#D4AF37">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lumina Focus">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="https://em-content.zobj.net/source/apple/354/crystal-ball_1f52e.png">
+<title>Lumina Focus Space</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --gold:#D4AF37;--gold-light:#F0D060;--gold-dark:#A07820;
+    --purple:#6B21A8;--purple-mid:#9333EA;--purple-light:#C084FC;
+    --purple-deep:#2D1454;--purple-glow:#7C3AED;
+    --bg-dark:#0D0818;--panel:#1A0F2E;--panel2:#120B22;
+    --text:#F5F0FF;--text-muted:#C4B5D4;
+    --gem-amethyst:#9B59B6;--gem-sapphire:#2E86AB;--gem-rose:#D4608C;
+  }
+  html,body{width:100%;height:100%;overflow:hidden;font-family:'Raleway',sans-serif;background:var(--bg-dark);color:var(--text)}
+
+  /* ── BACKGROUND ── */
+  #bg{position:fixed;inset:0;z-index:0}
+  #bg-video{width:100%;height:100%;object-fit:cover;opacity:.85;transition:transform .6s ease, filter .4s ease}
+  #bg-yt{width:100%;height:100%;pointer-events:none;display:none}
+  #bg-yt iframe {
+  width: 100vw;
+  height: 56.25vw; /* 16:9 Aspect Ratio */
+  min-height: 100vh;
+  min-width: 177.77vh; /* 100 * 16 / 9 */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  border: none;
+}
+  #overlay{position:fixed;inset:0;z-index:1;background:none;pointer-events:none;transition:background .4s ease}
+  #brightness-slider{position:fixed;top:56px;right:60px;z-index:50;background:rgba(13,8,24,.35);backdrop-filter:blur(32px) saturate(1.4);-webkit-backdrop-filter:blur(32px) saturate(1.4);border:1px solid rgba(212,175,55,.3);border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;gap:8px;align-items:center;min-width:180px;transform:translateY(-10px) scale(0.95);opacity:0;transition:transform .35s cubic-bezier(.4,0,.2,1), opacity .35s ease;pointer-events:none}
+  #brightness-slider.open{transform:translateY(0) scale(1);opacity:1;pointer-events:all}
+  .bright-label{font-family:'Cinzel Decorative',serif;font-size:9px;color:var(--gold);letter-spacing:1.5px}
+  .bright-value{font-size:11px;color:#fff;font-family:'Raleway',sans-serif}
+  .bright-track{width:150px;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;background:rgba(212,175,55,.2);outline:none;cursor:pointer}
+  .bright-track::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer}
+
+  /* ── STARS ── */
+  #stars{position:fixed;inset:0;z-index:2;pointer-events:none}
+  .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d) ease-in-out infinite alternate}
+  @keyframes twinkle{0%{opacity:.1;transform:scale(1)}100%{opacity:.9;transform:scale(1.4)}}
+
+  /* ── BUTTERFLIES ── */
+  #butterflies{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+  .butterfly{position:absolute;animation:flutter linear infinite}
+  .wing{animation:flap .4s ease-in-out infinite alternate;transform-origin:center right}
+  .wing-r{animation:flap .4s ease-in-out infinite alternate;transform-origin:center left;animation-delay:.05s}
+  @keyframes flap{0%{transform:scaleX(1)}100%{transform:scaleX(.1)}}
+  @keyframes flutter{0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(var(--dx1),var(--dy1)) rotate(var(--r1))}50%{transform:translate(var(--dx2),var(--dy2)) rotate(var(--r2))}75%{transform:translate(var(--dx3),var(--dy3)) rotate(var(--r3))}100%{transform:translate(0,0) rotate(0deg)}}
+
+  /* ── MAIN UI ── */
+  #ui{position:fixed;inset:0;z-index:13;display:flex;flex-direction:column;pointer-events:none}
+
+  /* ── TOP BAR ── */
+  #topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:rgba(13,8,24,.6);backdrop-filter:blur(12px);border-bottom:1px solid rgba(212,175,55,.2);transition:transform .6s ease,opacity .6s ease;pointer-events:all;}
+  #logo{font-family:'Cinzel Decorative',serif;font-size:15px;color:var(--gold);letter-spacing:2px;display:flex;align-items:center;gap:8px}
+  #logo span{font-size:18px}
+  #topnav{display:flex;gap:8px}
+  .tnav{padding:5px 14px;border-radius:20px;border:1px solid rgba(212,175,55,.3);background:transparent;color:var(--text-muted);cursor:pointer;font-family:'Raleway',sans-serif;font-size:12px;transition:all .3s}
+  .tnav:hover,.tnav.active{background:rgba(212,175,55,.15);color:var(--gold);border-color:var(--gold)}
+  #topright{display:flex;gap:8px}
+  .icon-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,.3);background:rgba(13,8,24,.5);color:var(--gold);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .3s}
+  .icon-btn:hover{background:rgba(212,175,55,.2);border-color:var(--gold)}
+
+  /* ── PANEL SIDEBAR ── */
+  #sidebar{position:fixed;left:0;top:55px;bottom:0;z-index:18;width:54px;display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:14px;background:rgba(13,8,24,.7);backdrop-filter:blur(10px);border-right:1px solid rgba(212,175,55,.15);transition:transform .6s ease,opacity .6s ease;overflow-y:auto;overflow-x:hidden}
+  .sicon{width:38px;height:38px;flex-shrink:0;border-radius:12px;border:1px solid rgba(212,175,55,.2);background:rgba(26,15,46,.8);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .3s;position:relative}
+  .sicon:hover,.sicon.active{background:rgba(107,33,168,.4);border-color:var(--purple-light);color:var(--purple-light)}
+  .sicon-tip{position:absolute;left:46px;top:50%;transform:translateY(-50%);background:rgba(13,8,24,.95);border:1px solid rgba(212,175,55,.3);color:var(--gold);padding:4px 10px;border-radius:8px;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s}
+  .sicon:hover .sicon-tip{opacity:1}
+  .sicon-divider{width:30px;height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.25),transparent);margin:2px 0;flex-shrink:0}
+  .sicon-label{font-family:'Cinzel Decorative',serif;font-size:6px;color:rgba(212,175,55,.4);letter-spacing:1.5px;text-align:center;padding:2px 0 0;line-height:1;flex-shrink:0}
+
+  /* ── SCENERY PANEL ── */
+  #scenery-panel{position:fixed;left:54px;top:55px;bottom:0;z-index:14;width:320px;background:rgba(13,8,24,.45);backdrop-filter:blur(32px) saturate(1.4);-webkit-backdrop-filter:blur(32px) saturate(1.4);border-right:1px solid rgba(212,175,55,.2);display:flex;flex-direction:column;overflow:hidden;transform:translateX(-110%);opacity:0;transition:transform .4s cubic-bezier(.4,0,.2,1), opacity .4s ease;pointer-events:none}
+  #scenery-panel.open{transform:translateX(0);opacity:1;pointer-events:all}
+  #sound-panel{position:fixed;right:0;top:55px;bottom:0;z-index:14;width:280px;background:rgba(13,8,24,.45);backdrop-filter:blur(32px) saturate(1.4);-webkit-backdrop-filter:blur(32px) saturate(1.4);border-left:1px solid rgba(212,175,55,.2);display:flex;flex-direction:column;overflow:hidden;transform:translateX(110%);opacity:0;transition:transform .4s cubic-bezier(.4,0,.2,1), opacity .4s ease;pointer-events:none}
+  #sound-panel.open{transform:translateX(0);opacity:1;pointer-events:all}
+  .panel-header{padding:14px 16px;border-bottom:1px solid rgba(212,175,55,.15);display:flex;align-items:center;justify-content:space-between}
+  .panel-title{font-family:'Cinzel Decorative',serif;font-size:12px;color:var(--gold);letter-spacing:1px}
+  .panel-tabs{display:flex;gap:2px;padding:10px 12px;border-bottom:1px solid rgba(212,175,55,.1)}
+  .ptab{flex:1;padding:6px;border-radius:8px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-size:11px;font-family:'Raleway',sans-serif;transition:all .2s;text-align:center}
+  .ptab.active{background:rgba(212,175,55,.15);color:var(--gold)}
+  .search-bar{margin:10px 12px;padding:7px 12px;background:rgba(26,15,46,.8);border:1px solid rgba(212,175,55,.2);border-radius:20px;color:var(--text);font-size:12px;font-family:'Raleway',sans-serif;width:calc(100% - 24px)}
+  .search-bar::placeholder{color:var(--text-muted)}
+  .search-bar:focus{outline:none;border-color:var(--gold)}
+  .cat-bar{display:flex;gap:6px;padding:0 12px 10px;overflow-x:auto;scrollbar-width:none}
+  .cat-bar::-webkit-scrollbar{display:none}
+  .cat-pill{padding:4px 12px;border-radius:20px;border:1px solid rgba(212,175,55,.2);background:transparent;color:var(--text-muted);cursor:pointer;font-size:10px;font-family:'Raleway',sans-serif;white-space:nowrap;transition:all .2s}
+  .cat-pill.active{background:rgba(212,175,55,.2);color:var(--gold);border-color:var(--gold)}
+  #video-grid{flex:1;overflow-y:auto;padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;scrollbar-width:thin;scrollbar-color:rgba(212,175,55,.2) transparent}
+  .vid-card{border-radius:10px;overflow:hidden;cursor:pointer;position:relative;border:1px solid rgba(212,175,55,.1);transition:all .3s;aspect-ratio:16/10;background:rgba(26,15,46,.5);min-height:80px}
+  .vid-card:hover{border-color:var(--gold);transform:scale(1.03)}
+  .vid-card img{width:100%;height:100%;object-fit:cover;display:block}
+  .vid-card .vid-name{position:absolute;bottom:0;left:0;right:0;padding:6px 6px 4px;background:linear-gradient(transparent,rgba(13,8,24,.95));font-size:8.5px;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .vid-card.playing{border-color:var(--gold);box-shadow:0 0 10px rgba(212,175,55,.4)}
+  #yt-section{padding:12px;border-top:1px solid rgba(212,175,55,.15)}
+  .yt-title{font-size:11px;color:var(--gold);margin-bottom:8px;font-family:'Cinzel Decorative',serif;letter-spacing:.5px}
+  .yt-input-row{display:flex;gap:6px}
+  .yt-input{flex:1;padding:7px 10px;background:rgba(26,15,46,.8);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:var(--text);font-size:11px;font-family:'Raleway',sans-serif}
+  .yt-input:focus{outline:none;border-color:var(--gold)}
+  .yt-btn{padding:7px 12px;background:rgba(212,175,55,.2);border:1px solid var(--gold);border-radius:8px;color:var(--gold);cursor:pointer;font-size:11px;font-family:'Raleway',sans-serif;transition:all .2s;white-space:nowrap}
+  .yt-btn:hover{background:rgba(212,175,55,.35)}
+
+  /* ── FLOATING WINDOWS ── */
+  .floatwin{position:fixed;z-index:12;background:rgba(13,8,24,.82);backdrop-filter:blur(20px);border:1px solid rgba(212,175,55,.3);border-radius:16px;user-select:none;-webkit-user-select:none;min-width:200px;box-shadow:0 8px 40px rgba(107,33,168,.25),inset 0 1px 0 rgba(212,175,55,.15);resize:both;overflow:hidden;transition:background .3s,backdrop-filter .3s;touch-action:none}
+  .floatwin.glass{background:rgba(13,8,24,.25)!important;backdrop-filter:blur(6px)}
+  .win-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:grab;border-bottom:1px solid rgba(212,175,55,.12);border-radius:16px 16px 0 0;touch-action:none;-webkit-user-select:none;user-select:none}
+  .win-header:active{cursor:grabbing}
+  .win-title{font-family:'Cinzel Decorative',serif;font-size:10px;color:var(--gold);letter-spacing:1px;display:flex;align-items:center;gap:6px}
+  .win-title span{font-size:12px}
+  .win-ctrl{display:flex;gap:4px;align-items:center}
+  .wcbtn{width:12px;height:12px;border-radius:50%;border:none;cursor:pointer;transition:opacity .2s}
+  .wcbtn:hover{opacity:.7}
+  .wc-close{background:#E06C75}
+  .wc-min{background:#E5C07B}
+  .wc-exp{background:#98C379}
+  .win-body{padding:14px}
+
+  /* ── POMODORO ── */
+  #pom-win{width:280px;top:80px;right:24px}
+  .pom-tabs{display:flex;gap:4px;margin-bottom:14px}
+  .pomtab{flex:1;padding:5px;border-radius:8px;border:1px solid rgba(212,175,55,.2);background:transparent;color:var(--text-muted);cursor:pointer;font-size:10px;font-family:'Raleway',sans-serif;text-align:center;transition:all .2s}
+  .pomtab.active{background:rgba(212,175,55,.15);color:var(--gold);border-color:var(--gold)}
+  .pom-display{text-align:center;margin:10px 0}
+  #pom-time{font-family:'Cinzel Decorative',serif;font-size:52px;color:#fff;line-height:1;letter-spacing:2px}
+  .pom-ring{width:130px;height:130px;margin:0 auto 10px;position:relative}
+  .pom-ring svg{transform:rotate(-90deg)}
+  .pom-ring-bg{stroke:rgba(212,175,55,.15)}
+  .pom-ring-fill{stroke:var(--gold);stroke-linecap:round;transition:stroke-dashoffset .8s linear}
+  .pom-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  #pom-time2{font-family:'Cinzel Decorative',serif;font-size:22px;color:#fff}
+  .pom-btns{display:flex;justify-content:center;gap:8px;margin-bottom:12px}
+  .pbtn{padding:7px 16px;border-radius:20px;border:1px solid rgba(212,175,55,.4);background:transparent;color:var(--text);cursor:pointer;font-size:12px;font-family:'Raleway',sans-serif;transition:all .2s}
+  .pbtn:hover{background:rgba(212,175,55,.2);color:var(--gold)}
+  .pbtn.primary{background:rgba(212,175,55,.2);border-color:var(--gold);color:var(--gold)}
+  .pbtn.primary:hover{background:rgba(212,175,55,.4)}
+  .pom-settings{border-top:1px solid rgba(212,175,55,.1);padding-top:12px;display:none}
+  .pom-settings.open{display:block}
+  .pom-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:11px;color:var(--text-muted)}
+  .pom-row label{flex:1}
+  .pom-num{width:54px;padding:4px 8px;background:rgba(26,15,46,.8);border:1px solid rgba(212,175,55,.2);border-radius:8px;color:var(--text);font-size:12px;text-align:center}
+  .pom-num:focus{outline:none;border-color:var(--gold)}
+  .pom-rounds{display:flex;gap:4px;margin-top:8px;justify-content:center}
+  .round-dot{width:8px;height:8px;border-radius:50%;border:1px solid rgba(212,175,55,.4);background:transparent;transition:background .3s}
+  .round-dot.done{background:var(--gold)}
+
+  /* ── QUOTE ── */
+  #quote-win{width:300px;top:80px;right:318px}
+  .quote-gem{width:28px;height:28px;margin:0 auto 10px;display:block}
+  #quote-text{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:var(--text);line-height:1.6;text-align:center;margin-bottom:6px}
+  #quote-author{font-size:11px;color:var(--gold);text-align:center;letter-spacing:1px}
+  .quote-date{font-size:10px;color:var(--text-muted);text-align:center;margin-top:4px}
+
+  /* ── GEMS decoration ── */
+  .gem{display:inline-block;animation:gemshine 3s ease-in-out infinite alternate}
+  @keyframes gemshine{0%{filter:brightness(1)}100%{filter:brightness(1.4)}}
+
+  /* minimized */
+  .floatwin.minimized .win-body{display:none}
+
+@keyframes winOpen{0%{opacity:0;transform:scale(0.92) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes winClose{0%{opacity:1;transform:scale(1) translateY(0)}100%{opacity:0;transform:scale(0.92) translateY(10px)}}
+.floatwin{animation:winOpen .3s cubic-bezier(.4,0,.2,1) forwards}
+.floatwin.closing{animation:winClose .25s cubic-bezier(.4,0,.2,1) forwards}
+#pom-win.compact{width:160px!important}
+#pom-win.compact .pom-tabs{display:none}
+#pom-win.compact .pom-btns{margin-bottom:4px;gap:4px}
+#pom-win.compact .pom-settings{display:none!important}
+#pom-win.compact .pom-rounds{display:none}
+#pom-win.compact #pom-time2{font-size:18px}
+#pom-win.compact .pom-ring{width:80px;height:80px;margin:2px auto 4px}
+#pom-win.compact .pom-ring svg{width:80px;height:80px}
+#pom-win.compact .win-title{font-size:7px;letter-spacing:.5px}
+#pom-win.compact .pbtn{padding:4px 8px;font-size:10px}
+
+  /* ── NOTIFICATION ── */
+  #notif{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:99;background:rgba(26,15,46,.95);border:1px solid var(--gold);border-radius:12px;padding:8px 20px;font-size:12px;color:var(--gold);opacity:0;transition:opacity .4s;pointer-events:none}
+  #notif.show{opacity:1}
+
+  body{cursor:auto}
+
+  #garden-wrap{width:100%;background:transparent;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.g-header{padding:10px 14px;border-bottom:1px solid rgba(212,175,55,0.12);display:flex;align-items:center;justify-content:space-between}
+.g-title{font-family:'Cinzel Decorative',serif;font-size:10px;color:#D4AF37;letter-spacing:1px;display:flex;align-items:center;gap:6px}
+.g-stats{display:flex;gap:10px;padding:8px 14px;border-bottom:1px solid rgba(212,175,55,0.08)}
+.stat-pill{flex:1;text-align:center;background:rgba(26,15,46,0.8);border:1px solid rgba(212,175,55,0.15);border-radius:8px;padding:5px 4px}
+.stat-label{font-size:9px;color:rgba(212,175,55,0.6);letter-spacing:1px;display:block}
+.stat-val{font-size:13px;color:#fff;font-weight:500}
+#garden-canvas{display:block;width:360px;height:200px;cursor:pointer}
+.g-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 12px;border-top:1px solid rgba(212,175,55,0.1)}
+.g-btn{padding:7px 4px;border-radius:10px;border:1px solid rgba(212,175,55,0.25);background:rgba(26,15,46,0.8);color:rgba(212,175,55,0.85);cursor:pointer;font-size:10px;font-family:'Raleway',sans-serif;letter-spacing:0.5px;text-align:center;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.g-btn:hover{background:rgba(107,33,168,0.35);border-color:#C084FC;color:#C084FC}
+.g-btn:active{transform:scale(0.96)}
+.g-btn .btn-icon{font-size:16px;line-height:1}
+.g-msg{min-height:22px;padding:4px 14px;font-size:10px;color:rgba(192,132,252,0.9);text-align:center;letter-spacing:0.5px;font-style:italic;border-top:1px solid rgba(212,175,55,0.06)}
+.g-season{display:flex;justify-content:center;gap:4px;padding:6px 14px 0}
+.season-dot{width:8px;height:8px;border-radius:50%;border:1px solid rgba(212,175,55,0.3);cursor:pointer;transition:all 0.2s}
+.season-dot.active{background:#D4AF37;border-color:#D4AF37}
+
+  html{scrollbar-color:rgba(212,175,55,.2) transparent}
+
+@media (max-width: 768px) {
+  #topbar{padding:6px 10px}
+  #logo{font-size:11px}
+  #logo span{font-size:14px}
+  .tnav{padding:4px 8px;font-size:10px}
+  #topright .icon-btn{width:28px;height:28px;font-size:12px}
+
+  #sidebar{width:44px;padding:10px 0;gap:10px}
+  .sicon{width:32px;height:32px;font-size:13px}
+  .sicon-tip{display:none}
+  .sicon-label{font-size:5px}
+
+  #scenery-panel{left:44px;top:55px!important;width:calc(100vw - 44px);max-width:100%}
+  #sound-panel{width:100vw;top:55px!important}
+  #sidebar{top:55px!important}
+
+  .floatwin{max-width:calc(100vw - 54px);min-width:unset}
+  #pom-win{width:calc(100vw - 64px)!important;right:8px;top:65px;left:auto}
+  #quote-win{width:calc(100vw - 64px)!important;right:8px;left:auto}
+  #clock-win{width:calc(100vw - 64px)!important;right:8px;left:auto}
+  #moon-win{width:calc(100vw - 64px)!important;left:54px}
+  #crystal-win{width:calc(100vw - 64px)!important;left:54px}
+  #astro-win{width:calc(100vw - 64px)!important;left:54px}
+  #tarot-win{width:calc(100vw - 64px)!important;left:54px}
+  #candle-win{width:calc(100vw - 64px)!important;left:54px}
+  #garden-win{width:calc(100vw - 64px)!important;left:54px}
+
+  #garden-canvas{width:100%!important;height:160px!important}
+  .g-actions{grid-template-columns:1fr 1fr 1fr}
+
+  #pom-time2{font-size:18px}
+  .pom-ring{width:100px;height:100px}
+  .pom-ring svg{width:100px;height:100px}
+
+  #astro-sign-picker{grid-template-columns:repeat(4,1fr)!important}
+  #tarot-cards-row{gap:8px}
+
+  .sound-slider{max-width:55px}
+
+  #brightness-slider{right:8px;top:50px;min-width:160px}
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  #topbar{padding:4px 10px}
+  #sidebar{width:40px;gap:8px;padding:8px 0}
+  .sicon{width:28px;height:28px;font-size:12px}
+
+  #scenery-panel{left:40px;width:260px;top:46px!important}
+  #sound-panel{width:260px;top:46px!important}
+  #sidebar{top:46px!important}
+
+  .floatwin{max-height:calc(100vh - 50px);overflow-y:auto;top:50px!important}
+  #pom-win{width:240px!important;top:50px!important;right:8px}
+  #pom-win .win-body{padding:8px}
+  .pom-ring{width:80px;height:80px;margin:4px auto}
+  .pom-ring svg{width:80px;height:80px}
+  #pom-time2{font-size:16px}
+  .pom-tabs{display:flex;gap:3px;margin-bottom:8px}
+  .pbtn{padding:5px 10px;font-size:11px}
+
+  #clock-win{width:220px!important;right:8px;top:50px!important}
+  #clock-time{font-size:30px!important}
+
+  #moon-win{width:220px!important;left:48px;top:50px!important}
+  #moon-canvas{width:120px!important;height:120px!important}
+
+  #crystal-win, #astro-win, #tarot-win, #garden-win{width:280px!important;left:48px;top:50px!important;max-height:calc(100vh - 60px);overflow-y:auto}
+
+  #garden-canvas{height:130px!important}
+
+  #quote-win{width:260px!important;top:50px!important;right:8px}
+  #quote-text{font-size:14px!important}
+
+  #candle-win{width:180px!important;left:48px;top:50px!important}
+  #candle-canvas{width:140px!important;height:160px!important}
+}
+
+@media (max-width: 480px) {
+  #logo{font-size:9px}
+  #topnav{gap:4px}
+  .tnav{padding:3px 6px;font-size:9px;letter-spacing:0}
+  .pom-ring{width:90px;height:90px}
+  .pom-ring svg{width:90px;height:90px}
+  #pom-time2{font-size:16px}
+  .pbtn{padding:5px 10px;font-size:11px}
+  #astro-sign-picker{grid-template-columns:repeat(3,1fr)!important}
+  .g-btn{font-size:9px;padding:5px 2px}
+  .g-btn .btn-icon{font-size:14px}
+}
+
+  /* ── MOONSTONE INVENTORY ── */
+  #garden-inventory{position:absolute;top:0;left:0;right:0;background:rgba(13,8,24,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,175,55,.2);padding:10px 14px;display:none;flex-direction:column;gap:8px;z-index:10}
+  #garden-inventory.open{display:flex}
+  .inv-title{font-family:'Cinzel Decorative',serif;font-size:9px;color:var(--gold);letter-spacing:2px}
+  .inv-tokens{display:flex;gap:8px;flex-wrap:wrap}
+  .inv-token{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid rgba(212,175,55,.25);background:rgba(26,15,46,.8);font-size:10px;color:var(--text-muted);font-family:'Raleway',sans-serif;transition:all .2s}
+  .inv-token.has{border-color:var(--gold);color:var(--gold)}
+  .inv-token .tok-count{font-size:12px;font-weight:600;color:#fff}
+  .inv-unlocks{display:flex;gap:6px;flex-wrap:wrap}
+  .unlock-btn{padding:5px 12px;border-radius:20px;border:1px solid rgba(212,175,55,.3);background:transparent;color:var(--text-muted);font-size:10px;font-family:'Raleway',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px}
+  .unlock-btn.affordable{border-color:var(--purple-light);color:var(--purple-light);background:rgba(107,33,168,.2)}
+  .unlock-btn.affordable:hover{background:rgba(107,33,168,.4);color:#fff}
+  .unlock-btn.owned{border-color:rgba(212,175,55,.5);color:var(--gold);background:rgba(212,175,55,.1);cursor:default}
+  .inv-close{font-size:14px;color:var(--text-muted);cursor:pointer;align-self:flex-start;margin-left:auto}
+
+  /* ── SOUND PANEL ── */
+  .sound-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;transition:background .2s}
+  .sound-row:hover{background:rgba(212,175,55,.06)}
+  .sound-row.active{background:rgba(107,33,168,.18);border-left:2px solid var(--gold)}
+  .sound-icon{font-size:15px;width:22px;text-align:center;flex-shrink:0}
+  .sound-name{font-size:11px;color:var(--text-muted);flex:1;font-family:'Raleway',sans-serif;letter-spacing:.4px}
+  .sound-toggle{width:24px;height:24px;border-radius:50%;border:1px solid rgba(212,175,55,.25);background:rgba(26,15,46,.8);color:var(--text-muted);cursor:pointer;font-size:9px;transition:all .25s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sound-toggle:hover{border-color:var(--gold);color:var(--gold)}
+  .sound-toggle.playing{background:rgba(212,175,55,.22);border-color:var(--gold);color:var(--gold)}
+  .sound-slider{flex:1;min-width:0;max-width:70px;-webkit-appearance:none;appearance:none;height:2px;border-radius:2px;background:rgba(212,175,55,.15);outline:none;cursor:pointer}
+  .sound-slider::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--gold);cursor:pointer}
+  .master-slider{width:100%;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;background:rgba(212,175,55,.2);outline:none;cursor:pointer}
+  .master-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer}
+  .sound-section{background:rgba(26,15,46,.5);border:1px solid rgba(212,175,55,.12);border-radius:14px;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+  .sound-section-title{font-family:'Cinzel Decorative',serif;font-size:9px;color:var(--gold);letter-spacing:1.5px;padding:0 10px 8px;opacity:.8}
+  .master-vol-box{background:rgba(26,15,46,.5);border:1px solid rgba(212,175,55,.2);border-radius:14px;padding:14px}
+  .master-vol-title{font-family:'Cinzel Decorative',serif;font-size:9px;color:var(--gold);letter-spacing:1.5px;margin-bottom:12px;opacity:.8}
+
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<svg id="cursor" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="8,0 14,5 11,14 5,14 2,5" fill="rgba(192,132,252,0.7)" stroke="#D4AF37" stroke-width="1"/>
+  <polygon points="8,2 12,5.5 10,12 6,12 4,5.5" fill="rgba(212,175,55,0.4)"/>
+</svg>
+<div id="cursor-trail"></div>
+
+<!-- BACKGROUND -->
+<div id="bg">
+  <video id="bg-video" autoplay muted loop playsinline></video>
+  <div id="bg-yt"><iframe id="yt-frame" frameborder="0" allow="autoplay" allowfullscreen loading="lazy"></iframe></div>
+</div>
+<div id="overlay"></div>
+
+<!-- STARS -->
+<div id="stars"></div>
+
+<!-- BUTTERFLIES -->
+<div id="butterflies"></div>
+
+<!-- NOTIFICATION -->
+
+<div id="notif"></div>
+<div id="brightness-slider">
+  <span class="bright-label">✦ Brightness</span>
+  <span class="bright-value" id="bright-val">100%</span>
+  <input type="range" min="10" max="200" value="100" class="bright-track" oninput="setBrightness(this.value)">
+  <div style="display:flex;gap:6px;margin-top:4px">
+    <button class="yt-btn" style="font-size:10px;padding:4px 10px" onclick="setBrightness(50);document.querySelector('.bright-track').value=50">🌙 Dim</button>
+    <button class="yt-btn" style="font-size:10px;padding:4px 10px" onclick="setBrightness(100);document.querySelector('.bright-track').value=100">☀ Normal</button>
+    <button class="yt-btn" style="font-size:10px;padding:4px 10px" onclick="setBrightness(160);document.querySelector('.bright-track').value=160">✨ Vivid</button>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="ui">
+<div id="topbar">
+  <div id="logo"><span>✦</span> LUMINA FOCUS</div>
+  <div id="topnav">
+    <button class="tnav" onclick="switchView('focus')">Focus</button>
+    <button class="tnav" onclick="switchView('relax')">Relax</button>
+    <button class="tnav" onclick="switchView('study')">Study</button>
+    <button class="tnav active" onclick="switchView('cinema')">Cinema</button>
+  </div>
+  <div id="topright">
+    <button class="icon-btn" title="Sounds" onclick="toggleSounds()">♪</button>
+    <button class="icon-btn" title="Toggle Stars" onclick="toggleStars()">✦</button>
+    <button class="icon-btn" title="Toggle Butterflies" onclick="toggleButterflies()">🦋</button>
+    <button class="icon-btn" title="Brightness" onclick="toggleBrightness()">☀</button>
+  </div>
+</div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+
+  <!-- SCENE -->
+  <div class="sicon-label">SCENE</div>
+  <div class="sicon active" onclick="toggleScenery()" id="sbg">
+    <span>🎞</span><span class="sicon-tip">Scenery</span>
+  </div>
+
+  <div class="sicon-divider"></div>
+
+  <!-- FOCUS -->
+  <div class="sicon-label">FOCUS</div>
+  <div class="sicon" onclick="toggleWin('pom-win','stimer')" id="stimer">
+    <span>⏱</span><span class="sicon-tip">Pomodoro</span>
+  </div>
+  <div class="sicon" onclick="toggleWin('candle-win','scandle')" id="scandle">
+    <span>🕯</span><span class="sicon-tip">Candle Timer</span>
+  </div>
+
+  <div class="sicon-divider"></div>
+
+  <!-- INFO -->
+  <div class="sicon-label">INFO</div>
+  <div class="sicon" onclick="toggleWin('clock-win','sclock')" id="sclock">
+    <span>🕰</span><span class="sicon-tip">Clock</span>
+  </div>
+  <div class="sicon" onclick="toggleWin('quote-win','squote')" id="squote">
+    <span>💬</span><span class="sicon-tip">Quote</span>
+  </div>
+
+  <div class="sicon-divider"></div>
+
+  <!-- MYSTIC -->
+  <div class="sicon-label">MYSTIC</div>
+  <div class="sicon" onclick="toggleWin('moon-win','smoon')" id="smoon">
+    <span>🌙</span><span class="sicon-tip">Moon Phase</span>
+  </div>
+  <div class="sicon" onclick="toggleWin('crystal-win','scrystal')" id="scrystal">
+    <span>💎</span><span class="sicon-tip">Crystal</span>
+  </div>
+  <div class="sicon" onclick="toggleWin('astro-win','sastro')" id="sastro">
+    <span>⭐</span><span class="sicon-tip">Astrology</span>
+  </div>
+  <div class="sicon" onclick="toggleWin('tarot-win','starot')" id="starot">
+    <span>🃏</span><span class="sicon-tip">Tarot</span>
+  </div>
+
+  <div class="sicon-divider"></div>
+
+  <!-- GARDEN -->
+  <div class="sicon-label">GARDEN</div>
+  <div class="sicon" onclick="toggleWin('garden-win','sgarden')" id="sgarden">
+    <span>🌸</span><span class="sicon-tip">Garden</span>
+  </div>
+
+</div>
+
+<!-- SCENERY PANEL -->
+<div id="scenery-panel" class="open">
+  <div class="panel-header">
+    <span class="panel-title">✦ Scenes</span>
+    <span style="cursor:pointer;color:var(--text-muted);font-size:14px" onclick="toggleScenery()">×</span>
+  </div>
+  <div class="panel-tabs">
+    <button class="ptab active" onclick="switchPTab('videos',this)">Videos</button>
+    <button class="ptab" onclick="switchPTab('custom',this)">Custom</button>
+  </div>
+  <input class="search-bar" placeholder="🔍 Search scenes…" oninput="filterVideos(this.value)">
+  <div class="cat-bar" id="cat-bar">
+    <button class="cat-pill active" onclick="filterCat('all',this)">All</button>
+    <button class="cat-pill" onclick="filterCat('nature',this)">🌿 Nature</button>
+    <button class="cat-pill" onclick="filterCat('city',this)">🏙 City</button>
+    <button class="cat-pill" onclick="filterCat('cozy',this)">🕯 Cozy</button>
+    <button class="cat-pill" onclick="filterCat('celestial',this)">🌌 Celestial</button>
+    <button class="cat-pill" onclick="filterCat('water',this)">🌊 Water</button>
+    <button class="cat-pill" onclick="filterCat('fantasy',this)">✨ Fantasy</button>
+  </div>
+  <div id="video-grid"></div>
+  <div id="yt-bg-vol" style="display:none;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid rgba(212,175,55,.15)">
+    <span style="font-size:10px;color:var(--text-muted);font-family:'Raleway',sans-serif;letter-spacing:.5px;">🔊 System volume controls YouTube audio</span>
+<button onclick="toggleYTMute()" id="yt-mute-btn" style="padding:4px 12px;background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--gold);font-family:'Raleway',sans-serif;font-size:10px;cursor:pointer;">🔊 Mute</button>
+  </div>
+  <div id="yt-section" style="display:none">
+    <div class="yt-title">✦ Custom Scene</div>
+    <div class="yt-input-row">
+      <input class="yt-input" id="yt-input" placeholder="Paste YouTube or MP4 link…">
+      <button class="yt-btn" onclick="loadMP4()">Play</button>
+      <button class="yt-btn" onclick="tryNextProxy()" style="background:rgba(107,33,168,.3);border-color:var(--purple-light);color:var(--purple-light)">↺</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding-top:8px">
+      <span style="font-size:11px;color:var(--gold)">🔊</span>
+      <input type="range" min="0" max="100" value="100" class="sound-slider" style="flex:1" id="yt-vol-slider" oninput="setYTVolume(this.value)">
+      <span style="font-size:10px;color:var(--text-muted);min-width:28px;text-align:right" id="yt-vol-label">100</span>
+    </div>
+  </div>
+</div>
+
+<!-- SOUND PANEL -->
+<div id="sound-panel">
+  <div class="panel-header">
+    <span class="panel-title">♪ Ambient Sounds</span>
+    <span style="cursor:pointer;color:var(--text-muted);font-size:14px" onclick="toggleSounds()">×</span>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;">
+
+    <div class="master-vol-box">
+      <div class="master-vol-title">✦ Master Volume</div>
+      <input type="range" min="0" max="100" value="80" class="master-slider" oninput="setMasterVolume(this.value)">
+    </div>
+
+    <div class="sound-section">
+      <div class="sound-section-title">✦ Nature</div>
+      <div class="sound-row" id="snd-rain">
+        <span class="sound-icon">🌧</span>
+        <span class="sound-name">Rain</span>
+        <button class="sound-toggle" onclick="toggleSound('rain')">▶</button>
+        <input type="range" min="0" max="100" value="50" class="sound-slider" oninput="setSoundVolume('rain',this.value)">
+      </div>
+      <div class="sound-row" id="snd-birds">
+        <span class="sound-icon">🐦</span>
+        <span class="sound-name">Birds</span>
+        <button class="sound-toggle" onclick="toggleSound('birds')">▶</button>
+        <input type="range" min="0" max="100" value="50" class="sound-slider" oninput="setSoundVolume('birds',this.value)">
+      </div>
+      <div class="sound-row" id="snd-waves">
+        <span class="sound-icon">🌊</span>
+        <span class="sound-name">Ocean Waves</span>
+        <button class="sound-toggle" onclick="toggleSound('waves')">▶</button>
+        <input type="range" min="0" max="100" value="50" class="sound-slider" oninput="setSoundVolume('waves',this.value)">
+      </div>
+    </div>
+
+    <div class="sound-section">
+      <div class="sound-section-title">✦ Cozy</div>
+      <div class="sound-row" id="snd-fire">
+        <span class="sound-icon">🔥</span>
+        <span class="sound-name">Campfire</span>
+        <button class="sound-toggle" onclick="toggleSound('fire')">▶</button>
+        <input type="range" min="0" max="100" value="50" class="sound-slider" oninput="setSoundVolume('fire',this.value)">
+      </div>
+    </div>
+
+    <div class="sound-section">
+      <div class="sound-section-title">✦ Custom Sound</div>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:0 10px 6px">
+
+        <!-- MP3 -->
+        <div style="font-size:9px;color:rgba(212,175,55,.5);letter-spacing:1.5px;font-family:'Raleway',sans-serif;">MP3 LINK</div>
+        <input class="yt-input" id="custom-sound-input" placeholder="Paste direct .mp3 link…" style="width:100%">
+        <div style="display:flex;gap:6px">
+          <button class="yt-btn" style="flex:1" onclick="playCustomSound()">▶ Play</button>
+          <button class="yt-btn" style="flex:1;background:rgba(107,33,168,.3);border-color:var(--purple-light);color:var(--purple-light)" onclick="stopCustomSound()">■ Stop</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding-top:2px">
+          <span style="font-size:11px;color:var(--text-muted)">Vol</span>
+          <input type="range" min="0" max="100" value="50" class="sound-slider" style="max-width:100%;flex:1" oninput="setCustomVolume(this.value)">
+        </div>
+        <div id="custom-sound-name" style="font-size:10px;color:var(--gold);text-align:center;min-height:14px"></div>
+
+        <!-- DIVIDER -->
+        <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.2),transparent);margin:4px 0;"></div>
+
+        <!-- YOUTUBE -->
+        <div style="font-size:9px;color:rgba(212,175,55,.5);letter-spacing:1.5px;font-family:'Raleway',sans-serif;">YOUTUBE LINK <span style="color:rgba(192,132,252,.6)">(audio only, mute/unmute)</span></div>
+        <input class="yt-input" id="yt-sound-input" placeholder="Paste YouTube link…" style="width:100%">
+        <div style="display:flex;gap:6px">
+          <button class="yt-btn" style="flex:1" onclick="playYTSound()">▶ Play</button>
+          <button class="yt-btn" style="flex:1;background:rgba(107,33,168,.3);border-color:var(--purple-light);color:var(--purple-light)" onclick="stopYTSound()">■ Stop</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:2px">
+          <span style="font-size:10px;color:var(--text-muted);font-family:'Raleway',sans-serif;">🔊 Use system volume</span>
+          <button onclick="toggleYTSoundMute()" id="yt-sound-mute-btn" style="padding:3px 10px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.3);border-radius:8px;color:var(--gold);font-family:'Raleway',sans-serif;font-size:10px;cursor:pointer;">🔊 Mute</button>
+        </div>
+        <div id="yt-sound-name" style="font-size:10px;color:var(--gold);text-align:center;min-height:14px"></div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- POMODORO WINDOW -->
+<div class="floatwin" id="pom-win">
+  <div class="win-header" onmousedown="dragStart(event,'pom-win')" ontouchstart="dragStart(event,'pom-win')">
+    <span class="win-title"><span>⏱</span> POMODORO</span>
+    <div class="win-ctrl">
+  <button class="wcbtn wc-min" onclick="toggleMin('pom-win');resizeWin('pom-win','small')"></button>
+  <button class="wcbtn wc-exp" onclick="resizeWin('pom-win','expand');toggleSettings()"></button>
+  <button class="wcbtn wc-close" onclick="hideWin('pom-win')"></button>
+  <button class="wcbtn" style="background:#F0A500;font-size:8px;width:16px;height:16px;color:#000" title="Compact mode" onclick="toggleCompact()">⊟</button>
+  <button class="wcbtn" style="background:#61AFEF;font-size:8px;width:16px;height:16px;color:#000" title="Toggle glass" onclick="toggleGlass('pom-win')">◑</button>
+</div>
+  </div>
+  <div class="win-body">
+    <div class="pom-tabs">
+      <button class="pomtab active" onclick="setPomMode('pomo',this)">Pomodoro</button>
+      <button class="pomtab" onclick="setPomMode('short',this)">Short Break</button>
+      <button class="pomtab" onclick="setPomMode('long',this)">Long Break</button>
+    </div>
+    <div class="pom-ring">
+      <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle class="pom-ring-bg" cx="65" cy="65" r="56" fill="none" stroke-width="6"/>
+        <circle class="pom-ring-fill" id="pom-arc" cx="65" cy="65" r="56" fill="none" stroke-width="6"
+          stroke-dasharray="351.86" stroke-dashoffset="0"/>
+      </svg>
+      <div class="pom-label"><div id="pom-time2">35:00</div></div>
+    </div>
+    <div class="pom-btns">
+      <button class="pbtn" onclick="pomReset()">↺</button>
+      <button class="pbtn primary" id="pom-playbtn" onclick="pomToggle()">Start</button>
+      <button class="pbtn" onclick="toggleSettings()">⚙</button>
+    </div>
+    <div class="pom-rounds" id="pom-rounds"></div>
+    <div class="pom-settings" id="pom-settings">
+      <div class="pom-row">
+        <label>Pomodoro (min)</label>
+        <input class="pom-num" id="inp-pomo" type="number" min="1" max="120" value="35" onchange="updateDurations()">
+      </div>
+      <div class="pom-row">
+        <label>Short Break (min)</label>
+        <input class="pom-num" id="inp-short" type="number" min="1" max="60" value="5" onchange="updateDurations()">
+      </div>
+      <div class="pom-row">
+        <label>Long Break (min)</label>
+        <input class="pom-num" id="inp-long" type="number" min="1" max="120" value="15" onchange="updateDurations()">
+      </div>
+      <div class="pom-row">
+        <label>Rounds</label>
+        <input class="pom-num" id="inp-rounds" type="number" min="1" max="10" value="4" onchange="updateRounds()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUOTE WINDOW -->
+<div class="floatwin" id="quote-win" style="display:none;background:transparent!important;backdrop-filter:none!important;border:none!important;box-shadow:none!important;width:340px;top:80px;right:318px;">
+  <div class="win-header" onmousedown="dragStart(event,'quote-win')" ontouchstart="dragStart(event,'quote-win')" style="background:transparent;border:none;padding:6px 10px;touch-action:none;">
+    <span style="font-size:10px;color:rgba(212,175,55,.4);letter-spacing:2px;font-family:'Raleway',sans-serif;text-shadow:0 2px 8px rgba(0,0,0,1);">drag to move</span>
+    <div class="win-ctrl">
+      <button class="wcbtn wc-min" onclick="toggleMin('quote-win')"></button>
+      <button class="wcbtn wc-close" onclick="hideWin('quote-win')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:0 10px 10px;filter:drop-shadow(0 0 20px rgba(0,0,0,.9));">
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <svg width="14" height="14" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+        <line x1="14" y1="1" x2="14" y2="27" stroke="rgba(212,175,55,0.4)" stroke-width=".5"/>
+        <line x1="1" y1="9" x2="27" y2="9" stroke="rgba(212,175,55,0.4)" stroke-width=".5"/>
+      </svg>
+      <span style="font-size:11px;color:rgba(212,175,55,1);font-family:'Raleway',sans-serif;letter-spacing:2px;text-shadow:0 2px 10px rgba(0,0,0,1);">Daily Fortune</span>
+      <span style="font-size:10px;color:rgba(255,255,255,1);font-family:'Raleway',sans-serif;text-shadow:0 2px 10px rgba(0,0,0,1);" id="quote-date"></span>
+      <div style="flex:1;height:1px;background:linear-gradient(to right,rgba(212,175,55,.4),transparent);margin-left:4px;"></div>
+    </div>
+
+    <div id="quote-text" style="font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;font-weight:300;color:#fff;line-height:1.5;margin-bottom:8px;text-shadow:0 2px 30px rgba(0,0,0,1),0 0 60px rgba(0,0,0,.9),2px 2px 4px rgba(0,0,0,1);"></div>
+    <div id="quote-author" style="font-family:'Raleway',sans-serif;font-size:10px;color:rgba(212,175,55,.8);letter-spacing:2px;text-transform:uppercase;text-shadow:0 2px 10px rgba(0,0,0,1);"></div>
+  </div>
+</div>
+
+<!-- CLOCK WINDOW -->
+<div class="floatwin" id="clock-win" style="display:none;background:transparent!important;backdrop-filter:none!important;border:none!important;box-shadow:none!important;width:280px;top:200px;right:24px;">
+  <div class="win-header" onmousedown="dragStart(event,'clock-win')" ontouchstart="dragStart(event,'clock-win')" style="background:transparent;border:none;padding:6px 10px;touch-action:none;">
+    <span style="font-size:10px;color:rgba(212,175,55,.4);letter-spacing:2px;font-family:'Raleway',sans-serif;text-shadow:0 2px 8px rgba(0,0,0,1);">drag to move</span>
+    <div class="win-ctrl">
+      <button class="wcbtn wc-min" onclick="toggleMin('clock-win')"></button>
+      <button class="wcbtn wc-close" onclick="hideWin('clock-win')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:0 10px 10px;filter:drop-shadow(0 0 40px rgba(0,0,0,1));text-align:center;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+      <svg width="12" height="12" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+      </svg>
+      <span style="font-size:10px;color:rgba(212,175,55,1);font-family:'Raleway',sans-serif;letter-spacing:3px;text-shadow:0 2px 10px rgba(0,0,0,1);">NOW</span>
+      <svg width="12" height="12" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+      </svg>
+    </div>
+    <div id="clock-time" style="font-family:'Cinzel Decorative',serif;font-size:42px;color:#fff;letter-spacing:4px;line-height:1;text-shadow:0 2px 30px rgba(0,0,0,1),0 0 40px rgba(107,33,168,.6),2px 2px 4px rgba(0,0,0,1),0 0 80px rgba(0,0,0,1);"></div>
+    <div id="clock-ampm" style="font-family:'Raleway',sans-serif;font-size:11px;color:rgba(212,175,55,1);letter-spacing:4px;margin-top:6px;text-shadow:0 2px 10px rgba(0,0,0,1);"></div>
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.4),transparent);margin:10px 0;"></div>
+    <div id="clock-date" style="font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:rgba(255,255,255,1);letter-spacing:1px;text-shadow:0 2px 20px rgba(0,0,0,1),2px 2px 4px rgba(0,0,0,1);"></div>
+    <div id="clock-day" style="font-family:'Raleway',sans-serif;font-size:10px;color:rgba(212,175,55,1);letter-spacing:3px;text-transform:uppercase;margin-top:4px;text-shadow:0 2px 20px rgba(0,0,0,1),2px 2px 4px rgba(0,0,0,1);"></div>
+</div>
+</div>
+
+<!-- MOON PHASE WINDOW -->
+<div class="floatwin" id="moon-win" style="display:none;width:260px;top:200px;left:80px;">
+  <div class="win-header" onmousedown="dragStart(event,'moon-win')" ontouchstart="dragStart(event,'moon-win')" style="background:transparent;border:none;padding:6px 10px;touch-action:none;">
+    <span style="font-size:10px;color:rgba(212,175,55,.4);letter-spacing:2px;font-family:'Raleway',sans-serif;text-shadow:0 2px 8px rgba(0,0,0,1);">drag to move</span>
+    <div class="win-ctrl">
+      <button class="wcbtn wc-min" onclick="toggleMin('moon-win')"></button>
+      <button class="wcbtn" style="background:#61AFEF;font-size:8px;width:16px;height:16px;color:#000" title="Toggle glass" onclick="toggleGlass('moon-win')">◑</button>
+      <button class="wcbtn wc-close" onclick="hideWin('moon-win')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:0 10px 10px;filter:drop-shadow(0 0 30px rgba(0,0,0,.9));text-align:center;">
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
+      <svg width="12" height="12" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+      </svg>
+      <span style="font-size:10px;color:rgba(212,175,55,1);font-family:'Raleway',sans-serif;letter-spacing:3px;text-shadow:0 2px 10px rgba(0,0,0,1);">MOON PHASE</span>
+      <svg width="12" height="12" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+      </svg>
+    </div>
+
+    <canvas id="moon-canvas" width="160" height="160" style="display:block;margin:0 auto 10px;filter:drop-shadow(0 0 20px rgba(192,132,252,.5)) drop-shadow(0 0 40px rgba(212,175,55,.3));"></canvas>
+
+    <div id="moon-name" style="font-family:'Cinzel Decorative',serif;font-size:13px;color:#fff;letter-spacing:1px;margin-bottom:4px;text-shadow:0 2px 20px rgba(0,0,0,1),0 0 30px rgba(192,132,252,.4);"></div>
+    <div id="moon-pct" style="font-family:'Raleway',sans-serif;font-size:10px;color:rgba(212,175,55,.8);letter-spacing:2px;margin-bottom:10px;text-shadow:0 2px 10px rgba(0,0,0,1);"></div>
+
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.4),transparent);margin:8px 0;"></div>
+
+    <div id="moon-energy" style="font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:#fff;line-height:1.5;text-shadow:0 2px 20px rgba(0,0,0,1),2px 2px 4px rgba(0,0,0,1);margin-bottom:6px;"></div>
+    <div id="moon-ritual" style="font-family:'Raleway',sans-serif;font-size:10px;color:rgba(192,132,252,.9);letter-spacing:1px;text-shadow:0 2px 10px rgba(0,0,0,1);"></div>
+
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.4),transparent);margin:8px 0;"></div>
+
+    <div style="display:flex;justify-content:space-between;padding:0 4px;">
+      <div style="text-align:center;">
+        <div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1px;font-family:'Raleway',sans-serif;text-shadow:0 2px 8px rgba(0,0,0,1);">RISE</div>
+        <div id="moon-rise" style="font-size:11px;color:#fff;font-family:'Cinzel Decorative',serif;text-shadow:0 2px 10px rgba(0,0,0,1);"></div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1px;font-family:'Raleway',sans-serif;text-shadow:0 2px 8px rgba(0,0,0,1);">CYCLE</div>
+        <div id="moon-cycle" style="font-size:11px;color:#fff;font-family:'Cinzel Decorative',serif;text-shadow:0 2px 10px rgba(0,0,0,1);"></div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1px;font-family:'Raleway',sans-serif;text-shadow:0 2px 8px rgba(0,0,0,1);">SET</div>
+        <div id="moon-set" style="font-size:11px;color:#fff;font-family:'Cinzel Decorative',serif;text-shadow:0 2px 10px rgba(0,0,0,1);"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CRYSTAL WINDOW -->
+<div class="floatwin" id="crystal-win" style="display:none;width:320px;top:80px;left:80px;">
+  <div class="win-header" onmousedown="dragStart(event,'crystal-win')" ontouchstart="dragStart(event,'crystal-win')" style="background:transparent;border:none;padding:6px 10px;touch-action:none;">
+    <span style="font-size:10px;color:rgba(212,175,55,.4);letter-spacing:2px;font-family:'Raleway',sans-serif;">drag to move</span>
+    <div class="win-ctrl">
+      <button class="wcbtn wc-min" onclick="toggleMin('crystal-win')"></button>
+      <button class="wcbtn wc-close" onclick="hideWin('crystal-win')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:0 10px 10px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <svg width="14" height="14" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+        <line x1="14" y1="1" x2="14" y2="27" stroke="rgba(212,175,55,0.4)" stroke-width=".5"/>
+        <line x1="1" y1="9" x2="27" y2="9" stroke="rgba(212,175,55,0.4)" stroke-width=".5"/>
+      </svg>
+      <span style="font-size:11px;color:rgba(212,175,55,1);font-family:'Raleway',sans-serif;letter-spacing:2px;text-shadow:0 2px 10px rgba(0,0,0,1);">CRYSTAL GAZING</span>
+      <div style="flex:1;height:1px;background:linear-gradient(to right,rgba(212,175,55,.4),transparent);margin-left:4px;"></div>
+    </div>
+
+    <div id="crystal-insight" style="font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:#fff;line-height:1.5;text-shadow:0 2px 20px rgba(0,0,0,.9),2px 2px 4px rgba(0,0,0,.9);"></div>
+  </div>
+</div>
+
+<!-- ASTROLOGY WINDOW -->
+<div class="floatwin" id="astro-win" style="display:none;width:320px;top:80px;right:80px;">
+  <div class="win-header" onmousedown="dragStart(event,'astro-win')" ontouchstart="dragStart(event,'astro-win')" style="background:transparent;border:none;padding:6px 10px;touch-action:none;">
+    <span style="font-size:10px;color:rgba(212,175,55,.4);letter-spacing:2px;font-family:'Raleway',sans-serif;">drag to move</span>
+    <div class="win-ctrl">
+      <button class="wcbtn wc-min" onclick="toggleMin('astro-win')"></button>
+      <button class="wcbtn wc-close" onclick="hideWin('astro-win')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:0 10px 10px;">
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <svg width="14" height="14" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+        <line x1="14" y1="1" x2="14" y2="27" stroke="rgba(212,175,55,0.4)" stroke-width=".5"/>
+        <line x1="1" y1="9" x2="27" y2="9" stroke="rgba(212,175,55,0.4)" stroke-width=".5"/>
+      </svg>
+      <span style="font-size:11px;color:rgba(212,175,55,1);font-family:'Raleway',sans-serif;letter-spacing:2px;text-shadow:0 2px 10px rgba(0,0,0,1);">DAILY HOROSCOPE</span>
+      <div style="flex:1;height:1px;background:linear-gradient(to right,rgba(212,175,55,.4),transparent);margin-left:4px;"></div>
+    </div>
+
+    <!-- SIGN PICKER -->
+    <div id="astro-sign-picker" style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px;">
+    </div>
+
+    <!-- READING -->
+    <div id="astro-reading" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div id="astro-symbol" style="font-size:32px;line-height:1;filter:drop-shadow(0 0 10px rgba(212,175,55,.5));"></div>
+        <div>
+          <div id="astro-sign-name" style="font-family:'Cinzel Decorative',serif;font-size:14px;color:#fff;letter-spacing:1px;text-shadow:0 2px 16px rgba(192,132,252,.5);"></div>
+          <div id="astro-dates" style="font-family:'Raleway',sans-serif;font-size:9px;color:rgba(212,175,55,.7);letter-spacing:1.5px;margin-top:2px;"></div>
+          <div id="astro-element" style="font-family:'Raleway',sans-serif;font-size:9px;color:rgba(192,132,252,.8);letter-spacing:1px;margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.3),transparent);margin:8px 0;"></div>
+
+      <div id="astro-today" style="font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:rgba(255,255,255,.95);line-height:1.6;margin-bottom:10px;text-shadow:0 2px 20px rgba(0,0,0,.9);"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div style="text-align:center;background:rgba(26,15,46,.5);border:1px solid rgba(212,175,55,.12);border-radius:10px;padding:8px 4px;">
+          <div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1px;font-family:'Raleway',sans-serif;margin-bottom:4px;">LOVE</div>
+          <div id="astro-love" style="font-size:13px;">💕</div>
+          <div id="astro-love-bar" style="height:2px;border-radius:2px;background:rgba(212,175,55,.15);margin-top:4px;overflow:hidden;"><div style="height:100%;background:linear-gradient(to right,#D4608C,#F4A0C0);border-radius:2px;transition:width .8s ease;"></div></div>
+        </div>
+        <div style="text-align:center;background:rgba(26,15,46,.5);border:1px solid rgba(212,175,55,.12);border-radius:10px;padding:8px 4px;">
+          <div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1px;font-family:'Raleway',sans-serif;margin-bottom:4px;">CAREER</div>
+          <div id="astro-career" style="font-size:13px;">⭐</div>
+          <div id="astro-career-bar" style="height:2px;border-radius:2px;background:rgba(212,175,55,.15);margin-top:4px;overflow:hidden;"><div style="height:100%;background:linear-gradient(to right,#D4AF37,#F0D060);border-radius:2px;transition:width .8s ease;"></div></div>
+        </div>
+        <div style="text-align:center;background:rgba(26,15,46,.5);border:1px solid rgba(212,175,55,.12);border-radius:10px;padding:8px 4px;">
+          <div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1px;font-family:'Raleway',sans-serif;margin-bottom:4px;">ENERGY</div>
+          <div id="astro-energy" style="font-size:13px;">✨</div>
+          <div id="astro-energy-bar" style="height:2px;border-radius:2px;background:rgba(212,175,55,.15);margin-top:4px;overflow:hidden;"><div style="height:100%;background:linear-gradient(to right,#7C3AED,#C084FC);border-radius:2px;transition:width .8s ease;"></div></div>
+        </div>
+      </div>
+      <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.3),transparent);margin:8px 0;"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1.5px;font-family:'Raleway',sans-serif;">✦ LUCKY TODAY</div>
+        <div id="astro-lucky" style="font-size:10px;color:rgba(192,132,252,.9);font-family:'Raleway',sans-serif;letter-spacing:1px;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1.5px;font-family:'Raleway',sans-serif;">✦ AVOID</div>
+        <div id="astro-avoid" style="font-size:10px;color:rgba(224,108,117,.9);font-family:'Raleway',sans-serif;letter-spacing:1px;"></div>
+      </div>
+
+      <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.3),transparent);margin:10px 0 8px;"></div>
+      <button onclick="showAstroSignPicker()" style="width:100%;padding:6px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:8px;color:rgba(212,175,55,.7);font-family:'Raleway',sans-serif;font-size:10px;cursor:pointer;letter-spacing:1px;">↺ Change Sign</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAROT WINDOW -->
+<div class="floatwin" id="tarot-win" style="display:none;width:320px;top:80px;left:80px;">
+  <div class="win-header" onmousedo<div class="win-header" onmousedown="dragStart(event,'tarot-win')" ontouchstart="dragStart(event,'tarot-win')" style="background:transparent;border:none;padding:6px 10px;touch-action:none;">wn="dragStart(event,'astro-win')" ontouchstart="dragStart(event,'astro-win')" style="background:transparent;border:none;padding:6px 10px;touch-action:none;">
+    <span style="font-size:10px;color:rgba(212,175,55,.4);letter-spacing:2px;font-family:'Raleway',sans-serif;">drag to move</span>
+    <div class="win-ctrl">
+      <button class="wcbtn wc-min" onclick="toggleMin('tarot-win')"></button>
+      <button class="wcbtn wc-close" onclick="hideWin('tarot-win')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:0 10px 10px;">
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <svg width="14" height="14" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+        <line x1="14" y1="1" x2="14" y2="27" stroke="rgba(212,175,55,0.4)" stroke-width=".5"/>
+        <line x1="1" y1="9" x2="27" y2="9" stroke="rgba(212,175,55,0.4)" stroke-width=".5"/>
+      </svg>
+      <span style="font-size:11px;color:rgba(212,175,55,1);font-family:'Raleway',sans-serif;letter-spacing:2px;text-shadow:0 2px 10px rgba(0,0,0,1);">TAROT READING</span>
+      <div style="flex:1;height:1px;background:linear-gradient(to right,rgba(212,175,55,.4),transparent);margin-left:4px;"></div>
+    </div>
+
+    <!-- MODE TABS -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <button id="tarot-tab-day" onclick="setTarotMode('day')" style="flex:1;padding:6px;border-radius:8px;border:1px solid rgba(212,175,55,.4);background:rgba(212,175,55,.18);color:#D4AF37;cursor:pointer;font-size:11px;font-family:'Raleway',sans-serif;transition:all .2s;">Card of the Day</button>
+      <button id="tarot-tab-spread" onclick="setTarotMode('spread')" style="flex:1;padding:6px;border-radius:8px;border:1px solid rgba(212,175,55,.2);background:transparent;color:#C4B5D4;cursor:pointer;font-size:11px;font-family:'Raleway',sans-serif;transition:all .2s;">3-Card Spread</button>
+    </div>
+
+    <!-- CARDS ROW -->
+    <div id="tarot-cards-row" style="display:flex;gap:12px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;"></div>
+
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.3),transparent);margin:8px 0;"></div>
+
+    <!-- MEANING BOX -->
+    <div id="tarot-meaning" style="background:rgba(26,15,46,.7);border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:14px;margin-bottom:12px;min-height:80px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;color:rgba(212,175,55,.5);text-align:center;">Draw your cards to receive a reading...</div>
+    </div>
+
+    <!-- DRAW BUTTON -->
+    <button onclick="drawTarotCards()" id="tarot-draw-btn" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(212,175,55,.5);background:rgba(212,175,55,.15);color:#D4AF37;cursor:pointer;font-family:'Cormorant Garamond',serif;font-size:14px;letter-spacing:1px;transition:all .3s;">✦ Draw Cards</button>
+  </div>
+</div>
+
+<!-- CANDLE WINDOW -->
+<div class="floatwin" id="candle-win" style="display:none;width:220px;top:80px;right:320px;">
+  <div class="win-header" onmousedown="dragStart(event,'candle-win')" ontouchstart="dragStart(event,'candle-win')" style="touch-action:none;">
+    <span class="win-title"><span>🕯</span> CANDLE TIMER</span>
+    <div class="win-ctrl">
+      <button class="wcbtn wc-min" onclick="toggleMin('candle-win')"></button>
+      <button class="wcbtn" style="background:#61AFEF;font-size:8px;width:16px;height:16px;color:#000" onclick="toggleGlass('candle-win')">◑</button>
+      <button class="wcbtn wc-close" onclick="hideWin('candle-win')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+      <svg width="10" height="10" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,1 27,9 22,27 6,27 1,9" fill="rgba(155,89,182,0.6)" stroke="#D4AF37" stroke-width="1.2"/>
+        <polygon points="14,4 24,10 20,24 8,24 4,10" fill="rgba(212,175,55,0.25)"/>
+      </svg>
+      <span style="font-family:'Raleway',sans-serif;font-size:9px;color:rgba(212,175,55,.7);letter-spacing:2px;">BURNS WITH YOUR SESSION</span>
+    </div>
+    <canvas id="candle-canvas" width="180" height="220" style="display:block;"></canvas>
+    <div id="candle-label" style="font-family:'Cinzel Decorative',serif;font-size:10px;color:rgba(212,175,55,.8);letter-spacing:1px;text-align:center;">Waiting to ignite…</div>
+    <div id="candle-pct" style="font-family:'Raleway',sans-serif;font-size:9px;color:rgba(192,132,252,.7);letter-spacing:1.5px;text-align:center;"></div>
+  </div>
+</div>
+
+<!-- GARDEN WINDOW -->
+<div class="floatwin" id="garden-win" style="display:none;width:360px;top:80px;left:80px;">
+  <div class="win-header" onmousedown="dragStart(event,'garden-win')" ontouchstart="dragStart(event,'garden-win')" style="background:transparent;border:none;padding:6px 10px;touch-action:none;">
+    <span style="font-size:10px;color:rgba(212,175,55,.4);letter-spacing:2px;font-family:'Raleway',sans-serif;">drag to move</span>
+    <div class="win-ctrl">
+      <button class="wcbtn wc-min" onclick="toggleMin('garden-win')"></button>
+      <button class="wcbtn" style="background:#61AFEF;font-size:8px;width:16px;height:16px;color:#000" onclick="toggleGlass('garden-win')">◑</button>
+      <button class="wcbtn wc-close" onclick="hideWin('garden-win')"></button>
+    </div>
+  </div>
+  <div class="win-body" style="padding:0;">
+    <div id="garden-wrap">
+      <div id="garden-inventory">
+        <div style="display:flex;align-items:center;">
+          <span class="inv-title">✦ MOONSTONE INVENTORY</span>
+          <span class="inv-close" onclick="toggleInventory()">×</span>
+        </div>
+        <div class="inv-tokens" id="inv-tokens-row"></div>
+        <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.2),transparent);"></div>
+        <div style="font-family:'Cinzel Decorative',serif;font-size:9px;color:var(--gold);letter-spacing:2px;opacity:.7;">✦ UNLOCK WITH ESSENCES</div>
+        <div class="inv-unlocks" id="inv-unlocks-row"></div>
+      </div>
+      <div class="g-header">
+        <span class="g-title">&#10022; MYSTIC GARDEN</span>
+        <span style="font-size:10px;color:rgba(212,175,55,0.5);font-family:Raleway,sans-serif;" id="season-label">&#127777; Summer</span>
+      </div>
+      <div class="g-stats">
+        <div class="stat-pill"><span class="stat-label">WATER</span><span class="stat-val" id="stat-water">5/10</span></div>
+        <div class="stat-pill"><span class="stat-label">BLOOM</span><span class="stat-val" id="stat-bloom">0</span></div>
+        <div class="stat-pill"><span class="stat-label">MAGIC</span><span class="stat-val" id="stat-magic">0%</span></div>
+        <div class="stat-pill"><span class="stat-label">DAY</span><span class="stat-val" id="stat-day">1</span></div>
+      </div>
+      <canvas id="garden-canvas" width="340" height="200"></canvas>
+      <div class="g-season">
+        <div class="season-dot active" onclick="setSeason(0)" title="Spring"></div>
+        <div class="season-dot" onclick="setSeason(1)" title="Summer"></div>
+        <div class="season-dot" onclick="setSeason(2)" title="Autumn"></div>
+        <div class="season-dot" onclick="setSeason(3)" title="Winter"></div>
+      </div>
+      <div class="g-actions">
+        <button class="g-btn" onclick="doWater()"><span class="btn-icon">&#128167;</span>Water</button>
+        <button class="g-btn" onclick="doMoonlight()"><span class="btn-icon">&#127769;</span>Moonlight</button>
+        <button class="g-btn" onclick="doHarvest()"><span class="btn-icon">&#10024;</span>Harvest</button>
+        <button class="g-btn" onclick="doPlant()"><span class="btn-icon">&#127807;</span>Plant Seed</button>
+        <button class="g-btn" onclick="doButterfly()"><span class="btn-icon">&#129419;</span>Butterflies</button>
+        <button class="g-btn" onclick="doSleep()"><span class="btn-icon">&#127774;</span>Rest Garden</button>
+        <button class="g-btn" onclick="toggleInventory()" style="grid-column:span 3;background:rgba(212,175,55,.08);border-color:rgba(212,175,55,.3);color:var(--gold)"><span class="btn-icon">💎</span>Moonstone Inventory</button>
+        <div style="grid-column:span 3;display:none;"></div>
+      </div>
+      <div class="g-msg" id="g-msg">&#10022; Tend your mystic garden with love...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ── QUOTES ──
+const QUOTES=[
+  {t:"The key to successful leadership is influence, not authority.",a:"Kenneth Blanchard"},
+  {t:"She is clothed in strength and dignity, and she laughs without fear of the future.",a:"Proverbs 31:25"},
+  {t:"Within you, there is a stillness and a sanctuary to which you can retreat at any time.",a:"Hermann Hesse"},
+  {t:"Stars can't shine without darkness.",a:"D.H. Sidebottom"},
+  {t:"The soul that sees beauty may sometimes walk alone.",a:"Johann Wolfgang von Goethe"},
+  {t:"Magic is believing in yourself. If you can make that happen, you can make anything happen.",a:"Johann Wolfgang von Goethe"},
+  {t:"Even the darkest night will end and the sun will rise.",a:"Victor Hugo"},
+  {t:"She remembered who she was and the game changed.",a:"Lalah Delia"},
+  {t:"In the middle of difficulty lies opportunity.",a:"Albert Einstein"},
+  {t:"Bloom where you are planted.",a:"Saint Francis de Sales"},
+  {t:"The universe is not outside of you. Look inside yourself; everything that you want, you already are.",a:"Rumi"},
+  {t:"A gem cannot be polished without friction, nor a person perfected without trials.",a:"Seneca"},
+  {t:"Be like a butterfly: patient with yourself and willing to transform.",a:"Unknown"},
+  {t:"Butterflies can't see their own wings, but the world can. You are more beautiful than you know.",a:"Unknown"},
+  {t:"She flies with her own wings.",a:"Oregon State Motto"},
+  {t:"Trust the magic of new beginnings.",a:"Meister Eckhart"},
+  {t:"The cosmos is within us. We are made of star stuff.",a:"Carl Sagan"},
+  {t:"Not all those who wander are lost.",a:"J.R.R. Tolkien"},
+  {t:"You are a luminous being. Shine.",a:"Unknown"},
+  {t:"Every day is a new canvas to paint upon.",a:"Unknown"},
+  {t:"Stardust and dreams — that's what you're made of.",a:"Unknown"},
+  {t:"There is a light in this world, a healing spirit more powerful than any darkness we may encounter.",a:"Mother Teresa"},
+  {t:"To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.",a:"Ralph Waldo Emerson"},
+  {t:"Let your soul glow as bright as the stars above.",a:"Unknown"},
+  {t:"A butterfly does not return to its cocoon once it has spread its wings.",a:"Unknown"},
+  {t:"The gem cannot be polished without friction.",a:"Chinese Proverb"},
+  {t:"May your heart be light, your spirit free, and your soul always find its way home.",a:"Unknown"},
+  {t:"She turned her wounds into wisdom.",a:"Oprah Winfrey"},
+  {t:"In every walk with nature, one receives far more than he seeks.",a:"John Muir"},
+  {t:"Be the celestial body in your own universe.",a:"Unknown"},
+  {t:"Quiet the mind and the soul will speak.",a:"Ma Jaya Sati Bhagavati"},
+  {t:"Great things are not done by impulse, but by a series of small things brought together.",a:"Vincent van Gogh"},
+  {t:"The secret of getting ahead is getting started.",a:"Mark Twain"},
+  {t:"You yourself, as much as anybody in the entire universe, deserve your love and affection.",a:"Buddha"},
+  {t:"Every moment is a fresh beginning.",a:"T.S. Eliot"},
+  {t:"Bloom slowly, like the universe does.",a:"Unknown"},
+  {t:"She flies, and where she goes, flowers follow.",a:"Unknown"},
+];
+
+function getDailyQuote(){
+  const d=new Date();
+  const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);
+  return QUOTES[doy%QUOTES.length];
+}
+function setQuote(){
+  const q=getDailyQuote();
+  document.getElementById('quote-text').textContent='"'+q.t+'"';
+  document.getElementById('quote-author').textContent='— '+q.a;
+  const d=new Date();
+  document.getElementById('quote-date').textContent=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+}
+
+// ── VIDEOS DATA ──
+const VIDEOS=[
+  {id:'v1',name:'Misty Forest Creek',cat:'nature',thumb:'https://i.ytimg.com/vi/NvftPSb5Xtw/maxresdefault.jpg',src:'yt:NvftPSb5Xtw'},
+  {id:'v2',name:'Starry Night Sky',cat:'celestial',thumb:'https://i.ytimg.com/vi/FXv8yWY7Z0I/maxresdefault.jpg',src:'yt:FXv8yWY7Z0I'},
+  {id:'v3',name:'Purple Butterfly Garden',cat:'fantasy',thumb:'https://i.ytimg.com/vi/Nlp6FN-mizI/maxresdefault.jpg',src:'yt:Nlp6FN-mizI'},
+  {id:'v4',name:'Raining in Osaka',cat:'water',thumb:'https://i.ytimg.com/vi/OC23KpzsEdo/maxresdefault.jpg',src:'yt:MZhivjxcF-M'},
+  {id:'v5',name:'Doggy Chef',cat:'cozy',thumb:'https://i.pinimg.com/originals/5e/cb/5f/5ecb5f9599e28282766ce59cf7fda89d.jpg',src:'yt:3xsP20G3lRw'},
+  {id:'v6',name:'City Lights at Dusk',cat:'city',thumb:'https://i.ytimg.com/vi/9F0Kzbni5R0/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGDUgXShyMA8=&rs=AOn4CLAE1l8zb4VRp3j1R7ov15KXfG7jvw',src:'yt:SuzmYTFGBuQ'},
+  {id:'v7',name:'Aurora Borealis',cat:'celestial',thumb:'https://tse2.mm.bing.net/th/id/OIP.UTmn-QfPfv0WtVCJvs5CjQHaEK?rs=1&pid=ImgDetMain&o=7&rm=3',src:'yt:4myPfvPvZL8'},
+  {id:'v8',name:'Crystal Cave',cat:'fantasy',thumb:'https://i.etsystatic.com/41045176/r/il/1b607a/5081118043/il_fullxfull.5081118043_jlco.jpg',src:'yt:_ob8Btx1xls'},
+  {id:'v9',name:'Ocean Sunrise',cat:'water',thumb:'https://i.ytimg.com/vi/vIlzvUsB6H0/maxresdefault.jpg',src:'yt:_zDBzXhTLcQ'},
+  {id:'v10',name:'Train Ride',cat:'city',thumb:'https://i.ytimg.com/vi/fu0QOcAeyXI/maxresdefault.jpg',src:'yt:fu0QOcAeyXI'},
+  {id:'v11',name:'Japanese Room',cat:'cozy',thumb:'https://i.ytimg.com/vi/lf6refTxQs8/maxresdefault.jpg',src:'yt:lf6refTxQs8'},
+  {id:'v12',name:'Konbini',cat:'city',thumb:'https://png.pngtree.com/background/20230519/original/pngtree-an-empty-store-at-night-on-a-rainy-day-picture-image_2663096.jpg',src:'yt:eWHeaUJW07E'},
+  {id:'v13',name:'Royal Oasis',cat:'nature',thumb:'https://i.ytimg.com/vi/GgX7R0yfwHA/maxresdefault.jpg',src:'yt:GgX7R0yfwHA'}
+];
+
+let activeCat='all', searchVal='';
+
+function renderGrid(){
+  const grid=document.getElementById('video-grid');
+  const filtered=VIDEOS.filter(v=>{
+    const catOk=activeCat==='all'||v.cat===activeCat;
+    const sOk=v.name.toLowerCase().includes(searchVal.toLowerCase());
+    const hasContent=v.src&&v.src.length>5;
+    return catOk&&sOk&&hasContent;
+  });
+  grid.innerHTML=filtered.map(v=>`
+    <div class="vid-card" id="vc-${v.id}" onclick="playVideo('${v.id}','${v.thumb}','${v.src}','${v.name}')">
+      <img src="${v.thumb}" alt="${v.name}" loading="lazy">
+      <div class="vid-name">${v.name}</div>
+    </div>`).join('');
+}
+renderGrid();
+
+function filterCat(cat,el){
+  activeCat=cat;
+  document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderGrid();
+}
+function filterVideos(v){searchVal=v;renderGrid();}
+
+// ── YOUTUBE / VIDEO ──
+const YT_PROXIES=[
+  'https://www.youtube-nocookie.com/embed/',
+  'https://piped.video/embed/',
+  'https://invidious.nerdvpn.de/embed/',
+  'https://inv.nadeko.net/embed/',
+];
+let proxyIndex=0;
+
+function extractYTId(input){
+  const iframeSrc=input.match(/src="([^"]+)"/);
+  const url=iframeSrc?iframeSrc[1]:input;
+  const patterns=[
+    /youtu\.be\/([^?&\s]+)/,
+    /[?&]v=([^?&\s]+)/,
+    /\/embed\/([^?&\s"]+)/,
+    /\/shorts\/([^?&\s]+)/,
+    /\/v\/([^?&\s]+)/,
+  ];
+  for(const p of patterns){
+    const m=url.match(p);
+    if(m) return m[1];
+  }
+  return null;
+}
+
+function loadYTBackground(ytId){
+  document.getElementById('yt-bg-vol').style.display='flex';
+  const iframe=document.getElementById('yt-frame');
+  const base=YT_PROXIES[proxyIndex];
+  const vol=document.getElementById('yt-bg-vol-slider')?document.getElementById('yt-bg-vol-slider').value:100;
+  iframe.src=base+ytId+'?autoplay=1&mute=0&loop=1&playlist='+ytId+'&vq=hd1080&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&volume='+vol;
+  document.getElementById('bg-video').style.display='none';
+  document.getElementById('bg-yt').style.display='block';
+  iframe.onerror=()=>tryNextProxy(ytId);
+  iframe.dataset.ytid=ytId;
+  notify('▶ Trying source '+(proxyIndex+1)+'/'+YT_PROXIES.length+'…');
+}
+
+function tryNextProxy(ytId){
+  proxyIndex=(proxyIndex+1)%YT_PROXIES.length;
+  if(proxyIndex===0){notify('❌ All sources failed — try a different video');return;}
+  notify('↺ Retrying with source '+(proxyIndex+1)+'…');
+  loadYTBackground(ytId||document.getElementById('yt-frame').dataset.ytid);
+}
+
+function playVideo(id,thumb,src,name){
+  document.querySelectorAll('.vid-card').forEach(c=>c.classList.remove('playing'));
+  const card=document.getElementById('vc-'+id);
+  if(card) card.classList.add('playing');
+  if(src&&src.startsWith('yt:')){
+    loadYTBackground(src.replace('yt:',''));
+  } else {
+    document.getElementById('bg-yt').style.display='none';
+    document.getElementById('bg-video').style.display='block';
+    const vid=document.getElementById('bg-video');
+    if(src&&src.length>5){vid.src=src;vid.play().catch(()=>{});}
+    else{vid.src='';}
+  }
+  notify('▶ Playing: '+name);
+}
+
+function loadMP4(){
+  const url=document.getElementById('yt-input').value.trim();
+  if(!url){notify('Please paste a link');return;}
+  const ytId=extractYTId(url);
+  if(ytId){
+    loadYTBackground(ytId);
+    document.querySelectorAll('.vid-card').forEach(c=>c.classList.remove('playing'));
+    notify('▶ YouTube scene loading…');
+    return;
+  }
+  const vid=document.getElementById('bg-video');
+  document.getElementById('bg-yt').style.display='none';
+  document.getElementById('bg-video').style.display='block';
+  vid.src=url;vid.play().catch(()=>{});
+  document.querySelectorAll('.vid-card').forEach(c=>c.classList.remove('playing'));
+  notify('▶ Custom scene loaded');
+}
+
+function setYTVolume(val){
+  const lbl1=document.getElementById('yt-vol-label');
+  const lbl2=document.getElementById('yt-bg-vol-label');
+  if(lbl1) lbl1.textContent=val;
+  if(lbl2) lbl2.textContent=val;
+  // sync both sliders
+  const s1=document.getElementById('yt-vol-slider');
+  const s2=document.getElementById('yt-bg-vol-slider');
+  if(s1) s1.value=val;
+  if(s2) s2.value=val;
+  // reload iframe with new volume baked into the URL
+  const iframe=document.getElementById('yt-frame');
+  if(iframe&&iframe.dataset.ytid){
+    const base=YT_PROXIES[proxyIndex];
+    iframe.src=base+iframe.dataset.ytid+'?autoplay=1&mute=0&loop=1&playlist='+iframe.dataset.ytid+'&vq=hd720&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&volume='+val;
+  }
+  // also control mp4 video element
+  const vid=document.getElementById('bg-video');
+  if(vid&&vid.src) vid.volume=parseInt(val)/100;
+}
+
+function switchPTab(tab,el){
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(tab==='custom'){
+    document.getElementById('video-grid').style.display='none';
+    document.querySelector('.cat-bar').style.display='none';
+    document.querySelector('.search-bar').style.display='none';
+    document.getElementById('yt-section').style.display='block';
+  } else {
+    document.getElementById('video-grid').style.display='grid';
+    document.querySelector('.cat-bar').style.display='flex';
+    document.querySelector('.search-bar').style.display='block';
+    document.getElementById('yt-section').style.display='none';
+  }
+}
+
+// ── POMODORO ──
+const MODES={pomo:{key:'inp-pomo',def:35},short:{key:'inp-short',def:5},long:{key:'inp-long',def:15}};
+let pomMode='pomo';
+let pomTotal=35*60;
+let pomLeft=35*60;
+let pomRunning=false;
+let pomInterval=null;
+let pomRound=0;
+let pomMaxRounds=4;
+const ARC_LEN=351.86;
+
+function getPomDuration(mode){
+  return parseInt(document.getElementById(MODES[mode].key).value||MODES[mode].def)*60;
+}
+function updateDurations(){
+  pomTotal=getPomDuration(pomMode);
+  pomLeft=pomTotal;
+  pomRunning=false;
+  clearInterval(pomInterval);
+  document.getElementById('pom-playbtn').textContent='Start';
+  renderPom();
+}
+function updateRounds(){
+  pomMaxRounds=parseInt(document.getElementById('inp-rounds').value)||4;
+  pomRound=0;
+  renderRounds();
+}
+function renderPom(){
+  const m=Math.floor(pomLeft/60).toString().padStart(2,'0');
+  const s=(pomLeft%60).toString().padStart(2,'0');
+  document.getElementById('pom-time2').textContent=m+':'+s;
+  const pct=pomTotal>0?pomLeft/pomTotal:1;
+  document.getElementById('pom-arc').style.strokeDashoffset=(ARC_LEN*(1-pct)).toFixed(2);
+  if(window.candleSync) window.candleSync(pomLeft, pomTotal, pomRunning);
+}
+function renderRounds(){
+  const c=document.getElementById('pom-rounds');
+  c.innerHTML='';
+  for(let i=0;i<pomMaxRounds;i++){
+    const d=document.createElement('div');
+    d.className='round-dot'+(i<pomRound?' done':'');
+    c.appendChild(d);
+  }
+}
+function pomToggle(){
+  if(pomRunning){
+    pomRunning=false;clearInterval(pomInterval);
+    document.getElementById('pom-playbtn').textContent='Resume';
+  } else {
+    pomRunning=true;
+    document.getElementById('pom-playbtn').textContent='Pause';
+    pomInterval=null;
+  }
+}
+function pomReset(){
+  pomRunning=false;clearInterval(pomInterval);
+  pomLeft=pomTotal;
+  document.getElementById('pom-playbtn').textContent='Start';
+  renderPom();
+  if(window.candleReset) window.candleReset();
+}
+function setPomMode(mode,el){
+  pomMode=mode;
+  pomRunning=false;clearInterval(pomInterval);
+  document.querySelectorAll('.pomtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  pomTotal=getPomDuration(mode);
+  pomLeft=pomTotal;
+  document.getElementById('pom-playbtn').textContent='Start';
+  renderPom();
+}
+function toggleSettings(){
+  document.getElementById('pom-settings').classList.toggle('open');
+}
+renderPom();
+renderRounds();
+
+// ── DRAG ──
+let dragEl=null,dragOX=0,dragOY=0;
+function dragStart(e,id){
+  const target=e.target;
+  if(target.classList.contains('wcbtn')||target.tagName==='BUTTON'||target.tagName==='INPUT') return;
+  e.preventDefault();
+  dragEl=document.getElementById(id);
+  const point=e.touches?e.touches[0]:e;
+  const rect=dragEl.getBoundingClientRect();
+  dragOX=point.clientX-rect.left;
+  dragOY=point.clientY-rect.top;
+  document.addEventListener('mousemove',onDrag,{passive:false});
+  document.addEventListener('mouseup',dragEnd);
+  document.addEventListener('touchmove',onDrag,{passive:false});
+  document.addEventListener('touchend',dragEnd);
+}
+function onDrag(e){
+  if(!dragEl) return;
+  e.preventDefault();
+  const point=e.touches?e.touches[0]:e;
+  let nx=point.clientX-dragOX;
+  let ny=point.clientY-dragOY;
+  nx=Math.max(0,Math.min(window.innerWidth-dragEl.offsetWidth,nx));
+  ny=Math.max(0,Math.min(window.innerHeight-dragEl.offsetHeight,ny));
+  dragEl.style.left=nx+'px';
+  dragEl.style.top=ny+'px';
+  dragEl.style.right='auto';
+  dragEl.style.bottom='auto';
+}
+function dragEnd(e){
+  dragEl=null;
+  document.removeEventListener('mousemove',onDrag);
+  document.removeEventListener('mouseup',dragEnd);
+  document.removeEventListener('touchmove',onDrag);
+  document.removeEventListener('touchend',dragEnd);
+}
+
+// ── WINDOW CONTROLS ──
+function hideWin(id){
+  const el=document.getElementById(id);
+  const map={'pom-win':'stimer','quote-win':'squote','clock-win':'sclock','moon-win':'smoon','crystal-win':'scrystal','astro-win':'sastro','tarot-win':'starot','garden-win':'sgarden','candle-win':'scandle'};
+  el.classList.add('closing');
+  setTimeout(()=>{
+    el.style.display='none';
+    el.classList.remove('closing');
+    if(map[id]) document.getElementById(map[id]).classList.remove('active');
+  },240);
+}
+function showWin(id){
+  const el=document.getElementById(id);
+  const map={'pom-win':'stimer','quote-win':'squote','clock-win':'sclock','moon-win':'smoon','crystal-win':'scrystal','astro-win':'sastro','tarot-win':'starot','garden-win':'sgarden','candle-win':'scandle'};
+  el.style.display='block';
+  el.classList.remove('closing');
+  void el.offsetWidth;
+  el.style.animation='none';
+  requestAnimationFrame(()=>{
+    el.style.animation='';
+    if(map[id]) document.getElementById(map[id]).classList.add('active');
+  });
+  // re-init content when window is opened
+  if(id==='quote-win') setQuote();
+  if(id==='crystal-win') renderCrystalWin(getCrystalOfDay());
+  if(id==='astro-win'){ initAstroSignPicker(); showAstroSignPicker(); }
+  if(id==='tarot-win') renderTarotSlots();
+  if(id==='moon-win') setTimeout(()=>initMoon(),80);
+}
+
+function toggleWin(id,iconId){
+  const el=document.getElementById(id);
+  const icon=document.getElementById(iconId);
+  if(el.style.display==='none'||el.style.display===''){
+    showWin(id);
+    icon.classList.add('active');
+    if(id==='moon-win'){
+      setTimeout(()=>initMoon(),80);
+    }
+  } else {
+    hideWin(id);
+    icon.classList.remove('active');
+  }
+}
+
+function toggleMin(id){document.getElementById(id).classList.toggle('minimized');}
+
+// ── WINDOW RESIZE PRESETS ──
+const winSizes={'pom-win':{w:280},'quote-win':{w:300}};
+function resizeWin(id,preset){
+  const el=document.getElementById(id);
+  // exit compact mode first so resize works cleanly
+  if(el.classList.contains('compact')) el.classList.remove('compact');
+  if(preset==='small'){el.style.width=winSizes[id].w+'px';el.style.height='auto';notify('✦ Window restored');}
+  else if(preset==='expand'){el.style.width='420px';el.style.height='auto';notify('✦ Window expanded');}
+}
+
+// ── GLASS TOGGLE ──
+function toggleGlass(id){
+  document.getElementById(id).classList.toggle('glass');
+  notify('✦ Window style toggled');
+}
+function toggleCompact(){
+  const win=document.getElementById('pom-win');
+  const isCompact=win.classList.toggle('compact');
+  // override any manual resize so compact always wins
+  win.style.width='';
+  win.style.height='';
+  notify(isCompact?'⊟ Compact mode on':'⊟ Compact mode off');
+}
+
+// ── SCENERY PANEL ──
+function toggleScenery(){
+  document.getElementById('scenery-panel').classList.toggle('open');
+}
+
+// ── STARS ──
+let starsOn=false;
+function toggleStars(){starsOn=!starsOn;document.getElementById('stars').style.display=starsOn?'block':'none';}
+document.getElementById('stars').style.display='none';
+function initStars(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const sz=Math.random()*2.5+.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;animation-delay:${Math.random()*4}s;opacity:${Math.random()*.6+.2}`;
+    c.appendChild(s);
+  }
+}
+initStars();
+
+// ── BUTTERFLIES ──
+let butterfliesOn=false;
+function toggleButterflies(){butterfliesOn=!butterfliesOn;document.getElementById('butterflies').style.display=butterfliesOn?'block':'none';}
+const BF_COLORS=['#9B59B6','#C084FC','#D4AF37','#F0D060','#D4608C','#7C3AED'];
+function makeButterfly(){
+  const wrap=document.createElement('div');
+  wrap.className='butterfly';
+  const color=BF_COLORS[Math.floor(Math.random()*BF_COLORS.length)];
+  const size=16+Math.random()*20;
+  const dur=8+Math.random()*12;
+  const startX=Math.random()*100,startY=Math.random()*100;
+  const moves=Array.from({length:3},()=>({dx:(Math.random()-0.5)*300,dy:(Math.random()-0.5)*200,r:(Math.random()-0.5)*30}));
+  wrap.style.cssText=`left:${startX}%;top:${startY}%;width:${size}px;height:${size/1.4}px;animation-duration:${dur}s;animation-delay:${Math.random()*dur}s;--dx1:${moves[0].dx}px;--dy1:${moves[0].dy}px;--r1:${moves[0].r}deg;--dx2:${moves[1].dx}px;--dy2:${moves[1].dy}px;--r2:${moves[1].r}deg;--dx3:${moves[2].dx}px;--dy3:${moves[2].dy}px;--r3:${moves[2].r}deg`;
+  wrap.innerHTML=`<img src="https://i.pinimg.com/originals/4c/0b/de/4c0bde0226109bed88415c2db814a97f.gif" width="${20}" height="${20}" style="opacity:0.6; filter:drop-shadow(0 0 14px #D4AF37) saturate(1.3);">`;
+  document.getElementById('butterflies').appendChild(wrap);
+}
+for(let i=0;i<9;i++) makeButterfly();
+document.getElementById('butterflies').style.display='none';
+
+// ── CURSOR ──
+const cur=document.getElementById('cursor');
+const trail=document.getElementById('cursor-trail');
+const TRAIL=8;
+const dots=[];
+for(let i=0;i<TRAIL;i++){
+  const d=document.createElement('div');
+  d.className='trail-dot';
+  d.style.opacity=(1-i/TRAIL)*0.5;
+  d.style.width=d.style.height=(6-i*0.5)+'px';
+  trail.appendChild(d);
+  dots.push({el:d,x:0,y:0});
+}
+let mx=0,my=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+function animTrail(){
+  let px=mx,py=my;
+  dots.forEach((d,i)=>{
+    d.x+=(px-d.x)*(0.4-i*0.03);
+    d.y+=(py-d.y)*(0.4-i*0.03);
+    d.el.style.left=d.x+'px';d.el.style.top=d.y+'px';
+    px=d.x;py=d.y;
+  });
+  requestAnimationFrame(animTrail);
+}
+animTrail();
+
+// ── NOTIFY ──
+let notifTO=null;
+function notify(msg){
+  const n=document.getElementById('notif');
+  n.textContent=msg;n.classList.add('show');
+  clearTimeout(notifTO);
+  notifTO=setTimeout(()=>n.classList.remove('show'),2500);
+}
+
+// ── SWITCH VIEW ──
+function switchView(v){
+  document.querySelectorAll('.tnav').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(v==='focus'){
+    document.getElementById('overlay').style.background='radial-gradient(ellipse at 20% 80%,rgba(107,33,168,.35) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(212,175,55,.15) 0%,transparent 55%),linear-gradient(180deg,rgba(13,8,24,.3) 0%,rgba(13,8,24,.1) 100%)';
+    document.getElementById('bg-video').style.opacity='.85';
+  }
+  if(v==='relax'){
+    document.getElementById('overlay').style.background='radial-gradient(ellipse at 50% 50%,rgba(46,134,171,.2) 0%,transparent 70%),radial-gradient(ellipse at 20% 30%,rgba(155,89,182,.3) 0%,transparent 60%)';
+    document.getElementById('bg-video').style.opacity='.85';
+  }
+  if(v==='study'){
+    document.getElementById('overlay').style.background='radial-gradient(ellipse at 80% 80%,rgba(212,175,55,.2) 0%,transparent 60%),linear-gradient(180deg,rgba(13,8,24,.5) 0%,rgba(13,8,24,.2) 100%)';
+    document.getElementById('bg-video').style.opacity='.85';
+  }
+  if(v==='cinema'){
+    document.getElementById('overlay').style.background='none';
+    document.getElementById('bg-video').style.opacity='1';
+  }
+  notify('✦ Mode: '+v.charAt(0).toUpperCase()+v.slice(1));
+}
+
+// ── DEFAULT BG ──
+(function(){
+  loadYTBackground('Nlp6FN-mizI');
+})();
+
+// ── UNLOCK AUDIO ON FIRST CLICK ──
+document.addEventListener('click', function unlockAudio(){
+  const silence = new Audio();
+  silence.play().catch(()=>{});
+  document.removeEventListener('click', unlockAudio);
+}, {once: true});
+
+// ── SOUNDS ──
+const SOUND_URLS={
+  rain:'rain-sound.mp3',
+  birds:'birds-sound.mp3',
+  waves:'ocean-waves-sound.mp3',
+  fire:'campfire-sound.mp3',
+};
+const soundNodes={};
+let masterVol=0.8;
+
+function toggleSounds(){
+  const p=document.getElementById('sound-panel');
+  p.classList.toggle('open');
+}
+function toggleSound(id){
+  const btn=document.querySelector('#snd-'+id+' .sound-toggle');
+  const row=document.getElementById('snd-'+id);
+  if(soundNodes[id]){
+    soundNodes[id].pause();soundNodes[id]=null;
+    if(btn){btn.textContent='▶';btn.classList.remove('playing');}
+    if(row) row.classList.remove('active');
+    return;
+  }
+  const audio=new Audio(SOUND_URLS[id]);
+  audio.loop=true;audio.volume=masterVol*0.5;
+  audio.play().catch(()=>notify('Sound blocked — click anywhere first!'));
+  soundNodes[id]=audio;
+  if(btn){btn.textContent='■';btn.classList.add('playing');}
+  if(row) row.classList.add('active');
+}
+function setSoundVolume(id,val){if(soundNodes[id]) soundNodes[id].volume=masterVol*(val/100);}
+function setMasterVolume(val){
+  masterVol=val/100;
+  Object.keys(soundNodes).forEach(id=>{if(soundNodes[id]) soundNodes[id].volume=masterVol*0.5;});
+}
+
+// ── CUSTOM SOUND ──
+let customAudio=null;
+function playCustomSound(){
+  const url=document.getElementById('custom-sound-input').value.trim();
+  if(!url){notify('Please paste an MP3 link!');return;}
+  if(customAudio){customAudio.pause();customAudio=null;}
+  customAudio=new Audio(url);
+  customAudio.loop=true;
+  customAudio.volume=masterVol*0.5;
+  customAudio.play()
+    .then(()=>{
+      const name=url.split('/').pop().replace('.mp3','')||'Custom Sound';
+      document.getElementById('custom-sound-name').textContent='♪ Playing: '+name;
+      notify('♪ Custom sound playing!');
+    })
+    .catch(()=>{
+      notify('❌ Could not load — check the link!');
+      document.getElementById('custom-sound-name').textContent='';
+    });
+}
+function stopCustomSound(){
+  if(customAudio){
+    customAudio.pause();customAudio=null;
+    document.getElementById('custom-sound-name').textContent='';
+    notify('■ Custom sound stopped');
+  }
+}
+function setCustomVolume(val){if(customAudio) customAudio.volume=masterVol*(val/100);}
+
+// ── YT SOUND PANEL ──
+let ytSoundMuted = false;
+let ytSoundActive = false;
+
+function playYTSound(){
+  const url = document.getElementById('yt-sound-input').value.trim();
+  if(!url){ notify('Please paste a YouTube link!'); return; }
+  const ytId = extractYTId(url);
+  if(!ytId){ notify('❌ Could not read YouTube link'); return; }
+
+  // create or reuse a hidden iframe for audio
+  let frame = document.getElementById('yt-sound-frame');
+  if(!frame){
+    frame = document.createElement('iframe');
+    frame.id = 'yt-sound-frame';
+    frame.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;bottom:0;left:0;border:none;';
+    frame.allow = 'autoplay';
+    document.body.appendChild(frame);
+  }
+  const base = YT_PROXIES[proxyIndex];
+  frame.src = base + ytId + '?autoplay=1&mute=0&loop=1&playlist=' + ytId + '&controls=0';
+  ytSoundActive = true;
+  ytSoundMuted = false;
+  document.getElementById('yt-sound-mute-btn').textContent = '🔊 Mute';
+
+  // show a trimmed label
+  const shortId = ytId.substring(0, 8) + '…';
+  document.getElementById('yt-sound-name').textContent = '♪ Playing: youtu.be/' + shortId;
+  notify('♪ YouTube sound loading…');
+}
+
+function stopYTSound(){
+  const frame = document.getElementById('yt-sound-frame');
+  if(frame){ frame.src = ''; }
+  ytSoundActive = false;
+  document.getElementById('yt-sound-name').textContent = '';
+  notify('■ YouTube sound stopped');
+}
+
+function toggleYTSoundMute(){
+  if(!ytSoundActive){ notify('No YouTube sound playing!'); return; }
+  ytSoundMuted = !ytSoundMuted;
+  const url = document.getElementById('yt-sound-input').value.trim();
+  const ytId = extractYTId(url);
+  if(!ytId) return;
+  const frame = document.getElementById('yt-sound-frame');
+  const base = YT_PROXIES[proxyIndex];
+  frame.src = base + ytId + '?autoplay=1&mute=' + (ytSoundMuted?1:0) + '&loop=1&playlist=' + ytId + '&controls=0';
+  document.getElementById('yt-sound-mute-btn').textContent = ytSoundMuted ? '🔇 Unmute' : '🔊 Mute';
+  notify(ytSoundMuted ? '🔇 YouTube sound muted' : '🔊 YouTube sound unmuted');
+}
+
+// ── DING SOUND ──
+function sendPomNotif(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    // Use service worker notification so it works when minimized
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.showNotification(title, {
+          body: body,
+          icon: 'https://em-content.zobj.net/source/apple/354/crystal-ball_1f52e.png',
+          badge: 'https://em-content.zobj.net/source/apple/354/crystal-ball_1f52e.png',
+          vibrate: [200, 100, 200],
+          tag: 'lumina-pom'
+        });
+      });
+    } else {
+      new Notification(title, {
+        body: body,
+        icon: 'https://em-content.zobj.net/source/apple/354/crystal-ball_1f52e.png'
+      });
+    }
+  }
+}
+
+if ('Notification' in window) Notification.requestPermission();
+
+// Register Service Worker for PWA + background notifications
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(reg => {
+      console.log('✦ Service Worker registered!', reg);
+    })
+    .catch(err => console.log('SW failed:', err));
+}
+
+const _pomWorkerBlob = new Blob([`setInterval(() => self.postMessage('tick'), 1000);`], { type: 'application/javascript' });
+const _pomWorker = new Worker(URL.createObjectURL(_pomWorkerBlob));
+_pomWorker.onmessage = () => {
+  if (pomRunning) {
+    pomLeft--;
+    if (pomLeft <= 0) {
+      clearInterval(pomInterval);
+      pomRunning = false;
+      pomRound = Math.min(pomRound + 1, pomMaxRounds);
+      renderRounds();
+      playDingSound();
+      const modeLabel = pomMode === 'pomo' ? '🍅 Pomodoro' : pomMode === 'short' ? '☕ Short Break' : '🌙 Long Break';
+      sendPomNotif('✦ ' + modeLabel + ' Complete!', pomMode === 'pomo' ? 'Great focus session! Time for a break 🌸' : 'Break over — ready to focus again? 💎');
+      autoNextSession();
+    }
+    renderPom();
+  }
+};
+
+function playDingSound(){
+  const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  function playTone(freq,startTime,duration,volume=0.4){
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.type='sine';
+    osc.frequency.setValueAtTime(freq,startTime);
+    gain.gain.setValueAtTime(0,startTime);
+    gain.gain.linearRampToValueAtTime(volume,startTime+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001,startTime+duration);
+    osc.start(startTime);osc.stop(startTime+duration);
+  }
+  const t=ctx.currentTime;
+  playTone(523,t,0.5);
+  playTone(659,t+0.18,0.5);
+  playTone(784,t+0.36,0.5);
+  playTone(1047,t+0.54,0.8);
+}
+
+// ── AUTO SWITCH SESSION ──
+function autoNextSession(){
+  const totalRounds=parseInt(document.getElementById('inp-rounds').value)||4;
+  setTimeout(()=>{
+    if(pomMode==='pomo'){
+      if(pomRound>=totalRounds){
+        notify('✦ All rounds done! Long break time 🌙');
+        setPomMode('long',document.querySelectorAll('.pomtab')[2]);
+      } else {
+        notify('✦ Pomo done! Short break time ☕');
+        setPomMode('short',document.querySelectorAll('.pomtab')[1]);
+      }
+    } else {
+      notify('✦ Break over! Back to focus 🔥');
+      setPomMode('pomo',document.querySelectorAll('.pomtab')[0]);
+    }
+    pomToggle();
+  },1500);
+}
+
+// ── AUTO HIDE UI ON INACTIVITY ──
+let inactivityTimer=null;
+let uiHidden=false;
+const elementsToHide=[
+  document.getElementById('topbar'),
+  document.getElementById('sidebar'),
+  document.getElementById('scenery-panel'),
+  document.getElementById('sound-panel'),
+];
+function hideUI(){
+  uiHidden=true;
+  elementsToHide.forEach(el=>{if(el){el.style.opacity='0';el.style.pointerEvents='none';}});
+  document.getElementById('topbar').style.transform='translateY(-100%)';
+  document.getElementById('sidebar').style.transform='translateX(-100%)';
+}
+function showUI(){
+  uiHidden=false;
+  elementsToHide.forEach(el=>{if(el){el.style.opacity='1';el.style.pointerEvents='auto';}});
+  document.getElementById('topbar').style.transform='translateY(0)';
+  document.getElementById('sidebar').style.transform='translateX(0)';
+}
+function resetInactivity(){
+  if(uiHidden) showUI();
+  clearTimeout(inactivityTimer);
+  inactivityTimer=setTimeout(hideUI,5000);
+}
+['mousemove','mousedown','keydown','scroll','touchstart'].forEach(evt=>{
+  document.addEventListener(evt,resetInactivity,{passive:true});
+});
+resetInactivity();
+
+// ── BRIGHTNESS ──
+function toggleBrightness(){
+  document.getElementById('brightness-slider').classList.toggle('open');
+}
+function setBrightness(val){
+  const v=parseInt(val);
+  document.getElementById('bg-video').style.filter=`brightness(${v/100})`;
+  document.getElementById('bg-yt').style.filter=`brightness(${v/100})`;
+  document.getElementById('bright-val').textContent=v+'%';
+}
+
+// ── CLOCK ──
+function updateClock(){
+  const now=new Date();
+  let h=now.getHours();
+  const m=now.getMinutes().toString().padStart(2,'0');
+  const s=now.getSeconds().toString().padStart(2,'0');
+  const ampm=h>=12?'PM':'AM';
+  h=h%12||12;
+  document.getElementById('clock-time').textContent=h+':'+m+':'+s;
+  document.getElementById('clock-ampm').textContent=ampm;
+  document.getElementById('clock-date').textContent=now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('clock-day').textContent=now.toLocaleDateString('en-US',{weekday:'long'});
+}
+updateClock();
+setInterval(updateClock,1000);
+
+// ── MOON PHASE ──
+const MOON_PHASES=[
+  {name:'New Moon',emoji:'🌑',energy:'A time for new beginnings. Set your intentions and plant the seeds of your deepest desires.',ritual:'✦ Write your intentions by candlelight'},
+  {name:'Waxing Crescent',emoji:'🌒',energy:'Momentum is building. Take the first steps toward what you wish to create.',ritual:'✦ Speak your goals aloud into the universe'},
+  {name:'First Quarter',emoji:'🌓',energy:'Push through resistance. The universe is testing your commitment to your dreams.',ritual:'✦ Take bold action on one dream today'},
+  {name:'Waxing Gibbous',emoji:'🌔',energy:'Refine and realign. You are almost there — trust the process unfolding.',ritual:'✦ Practice gratitude for what is coming'},
+  {name:'Full Moon',emoji:'🌕',energy:'Peak energy and illumination. What was hidden is now revealed. Release what no longer serves you.',ritual:'✦ Charge your crystals under the moonlight'},
+  {name:'Waning Gibbous',emoji:'🌖',energy:'Share your wisdom. Gratitude flows freely as abundance returns to the earth.',ritual:'✦ Journal all you have received this cycle'},
+  {name:'Last Quarter',emoji:'🌗',energy:'Release and let go. Clear space in your heart for the magic that is coming.',ritual:'✦ Cleanse your space with smoke or sound'},
+  {name:'Waning Crescent',emoji:'🌘',energy:'Rest and surrender. The universe is preparing something beautiful for you.',ritual:'✦ Sleep early and dream with intention'},
+];
+
+function getMoonPhase(){
+  const now=new Date();
+  const known=new Date(2000,0,6,18,14,0);
+  const cycle=29.530588853;
+  const diff=(now-known)/86400000;
+  let age=((diff%cycle)+cycle)%cycle;
+  const pct=age/cycle;
+  let phaseIndex=Math.floor((pct*8+0.5)%8);
+  return{age,pct,phase:MOON_PHASES[phaseIndex],index:phaseIndex};
+}
+
+function drawMoon(pct,index){
+  const canvas=document.getElementById('moon-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const cx=80,cy=80,r=60;
+  ctx.clearRect(0,0,160,160);
+
+  // outer glow halo
+  const halo=ctx.createRadialGradient(cx,cy,r-5,cx,cy,r+22);
+  halo.addColorStop(0,'rgba(212,175,55,0.18)');
+  halo.addColorStop(0.5,'rgba(192,132,252,0.08)');
+  halo.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(cx,cy,r+22,0,Math.PI*2);
+  ctx.fillStyle=halo;
+  ctx.fill();
+
+  // dark background circle
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle='#080310';
+  ctx.fill();
+
+  // tiny stars inside dark area
+  const starPositions=[
+    {x:cx-30,y:cy-20},{x:cx-45,y:cy+10},{x:cx-20,y:cy+35},
+    {x:cx-38,y:cy-38},{x:cx+5,y:cy-48},{x:cx-15,y:cy+48},
+    {x:cx-50,y:cy-10},{x:cx+10,y:cy+50},{x:cx-42,y:cy+28},
+  ];
+  starPositions.forEach((s,i)=>{
+    const twinkle=Math.sin(Date.now()/800+i*1.3)*0.3+0.5;
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,Math.random()<0.5?0.8:1.1,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${twinkle*0.7})`;
+    ctx.fill();
+  });
+
+  // moon surface gradient
+  const moonGrad=ctx.createRadialGradient(cx-18,cy-18,4,cx,cy,r);
+  moonGrad.addColorStop(0,'#FFFEF0');
+  moonGrad.addColorStop(0.25,'#FFF8D0');
+  moonGrad.addColorStop(0.55,'#F0DC90');
+  moonGrad.addColorStop(0.8,'#D4AF50');
+  moonGrad.addColorStop(1,'#A07828');
+
+  // craters gradient for texture
+  function drawCrater(cx2,cy2,cr,alpha){
+    const cg=ctx.createRadialGradient(cx2-cr*0.3,cy2-cr*0.3,0,cx2,cy2,cr);
+    cg.addColorStop(0,'rgba(160,120,30,'+alpha*0.5+')');
+    cg.addColorStop(0.5,'rgba(100,75,20,'+alpha*0.3+')');
+    cg.addColorStop(1,'rgba(200,165,60,'+alpha*0.1+')');
+    ctx.beginPath();
+    ctx.arc(cx2,cy2,cr,0,Math.PI*2);
+    ctx.fillStyle=cg;
+    ctx.fill();
+    // crater rim highlight
+    ctx.beginPath();
+    ctx.arc(cx2-cr*0.25,cy2-cr*0.25,cr*0.3,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,245,200,'+alpha*0.15+')';
+    ctx.fill();
+  }
+
+  if(index===4){
+    // full moon — all lit
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle=moonGrad;
+    ctx.fill();
+
+    // surface texture shading
+    const shadeG=ctx.createRadialGradient(cx+25,cy+25,5,cx,cy,r);
+    shadeG.addColorStop(0,'rgba(0,0,0,0)');
+    shadeG.addColorStop(0.7,'rgba(0,0,0,0.05)');
+    shadeG.addColorStop(1,'rgba(0,0,0,0.25)');
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.fillStyle=shadeG;
+    ctx.fill();
+
+    // craters
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.clip();
+    drawCrater(cx+18,cy-22,11,0.9);
+    drawCrater(cx-20,cy+18,8,0.8);
+    drawCrater(cx+5,cy+30,6,0.7);
+    drawCrater(cx-30,cy-15,5,0.6);
+    drawCrater(cx+30,cy+10,4,0.5);
+    drawCrater(cx-10,cy-38,7,0.6);
+    ctx.restore();
+
+  } else if(index!==0){
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.clip();
+
+    if(index<4){
+      // waxing - lit on right
+      ctx.fillStyle=moonGrad;
+      ctx.fillRect(cx,cy-r,r,r*2);
+      const phase=pct*2;
+      const ex=r*(1-phase*2);
+      if(Math.abs(ex)>0.5){
+        ctx.beginPath();
+        ctx.ellipse(cx,cy,Math.abs(ex),r,0,0,Math.PI*2);
+        ctx.fillStyle=ex>0?'#080310':moonGrad;
+        ctx.fill();
+      }
+    } else {
+      // waning - lit on left
+      ctx.fillStyle=moonGrad;
+      ctx.fillRect(cx-r,cy-r,r,r*2);
+      const phase=(1-pct)*2;
+      const ex=r*(1-phase*2);
+      if(Math.abs(ex)>0.5){
+        ctx.beginPath();
+        ctx.ellipse(cx,cy,Math.abs(ex),r,0,0,Math.PI*2);
+        ctx.fillStyle=ex>0?'#080310':moonGrad;
+        ctx.fill();
+      }
+    }
+
+    // surface shading on lit side
+    const shadeG=ctx.createRadialGradient(cx+20,cy+20,5,cx,cy,r);
+    shadeG.addColorStop(0,'rgba(0,0,0,0)');
+    shadeG.addColorStop(0.7,'rgba(0,0,0,0.05)');
+    shadeG.addColorStop(1,'rgba(0,0,0,0.3)');
+    ctx.fillStyle=shadeG;
+    ctx.fillRect(0,0,160,160);
+
+    // craters on lit area
+    drawCrater(cx+18,cy-22,11,0.9);
+    drawCrater(cx-20,cy+18,8,0.8);
+    drawCrater(cx+5,cy+30,6,0.7);
+    drawCrater(cx-30,cy-15,5,0.6);
+    drawCrater(cx+30,cy+10,4,0.5);
+    drawCrater(cx-10,cy-38,7,0.6);
+
+    ctx.restore();
+  }
+
+  // terminator soft glow edge
+  if(index!==0&&index!==4){
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.clip();
+    const edge=index<4?cx:cx;
+    const termG=ctx.createLinearGradient(cx-8,0,cx+8,0);
+    termG.addColorStop(0,'rgba(150,100,255,0.0)');
+    termG.addColorStop(0.5,'rgba(180,140,255,0.18)');
+    termG.addColorStop(1,'rgba(150,100,255,0.0)');
+    ctx.fillStyle=termG;
+    ctx.fillRect(cx-8,cy-r,16,r*2);
+    ctx.restore();
+  }
+
+  // border ring
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle='rgba(212,175,55,0.45)';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+
+  // inner rim shimmer
+  ctx.beginPath();
+  ctx.arc(cx,cy,r-2,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,245,200,0.08)';
+  ctx.lineWidth=2;
+  ctx.stroke();
+}
+
+function initMoon(){
+  const{age,pct,phase,index}=getMoonPhase();
+
+  // draw immediately
+  drawMoon(pct,index);
+
+  const nameEl=document.getElementById('moon-name');
+  const pctEl=document.getElementById('moon-pct');
+  const energyEl=document.getElementById('moon-energy');
+  const ritualEl=document.getElementById('moon-ritual');
+  const cycleEl=document.getElementById('moon-cycle');
+  const riseEl=document.getElementById('moon-rise');
+  const setEl=document.getElementById('moon-set');
+
+  if(nameEl) nameEl.textContent=phase.emoji+' '+phase.name;
+  if(pctEl) pctEl.textContent=Math.round(pct*100)+'% THROUGH LUNAR CYCLE';
+  if(energyEl) energyEl.textContent='"'+phase.energy+'"';
+  if(ritualEl) ritualEl.textContent=phase.ritual;
+  if(cycleEl) cycleEl.textContent=Math.round(age)+'/29d';
+
+  const rises=['6:00 PM','7:30 PM','9:00 PM','10:30 PM','12:00 AM','2:00 AM','4:00 AM','5:30 AM'];
+  const sets=['6:00 AM','7:30 AM','9:00 AM','10:30 AM','12:00 PM','2:00 PM','4:00 PM','5:30 PM'];
+  if(riseEl) riseEl.textContent=rises[index];
+  if(setEl) setEl.textContent=sets[index];
+}
+
+// ── CRYSTAL OF THE DAY ──
+const CRYSTALS_DAY=[
+  {name:"Amethyst",zodiac:"Pisces · Aquarius",meaning:"The stone of spiritual wisdom and calm. It protects your aura and opens the third eye, guiding you toward higher consciousness.",energies:["INTUITION","PEACE","CLARITY"],ritual:"✦ Place under your pillow tonight to receive dreams as messages",color:"#9B59B6",stroke:"#C084FC"},
+  {name:"Rose Quartz",zodiac:"Taurus · Libra",meaning:"The crystal of unconditional love. It softens the heart and invites tenderness — toward others and most importantly, toward yourself.",energies:["LOVE","COMPASSION","HEALING"],ritual:"✦ Hold to your chest and breathe deeply — let love flow inward",color:"#D4608C",stroke:"#F4A0C0"},
+  {name:"Citrine",zodiac:"Leo · Gemini",meaning:"A stone of light and abundance. Citrine carries the energy of the sun, transmuting negativity into pure golden joy and manifestation power.",energies:["JOY","ABUNDANCE","ENERGY"],ritual:"✦ Keep in your wallet or workspace to invite golden opportunities",color:"#D4AF37",stroke:"#F0D060"},
+  {name:"Lapis Lazuli",zodiac:"Sagittarius · Aquarius",meaning:"The stone of wisdom and truth. Ancient royalty wore it to access cosmic knowledge. It empowers honest self-expression and deep insight.",energies:["TRUTH","WISDOM","POWER"],ritual:"✦ Wear it near your throat — speak your truth boldly today",color:"#1A5276",stroke:"#5DADE2"},
+  {name:"Moonstone",zodiac:"Cancer · Libra",meaning:"A talisman of the inward journey. Moonstone honors the cycles within you — intuition, emotion, and the sacred feminine that flows like the tide.",energies:["INTUITION","CYCLES","MAGIC"],ritual:"✦ Cleanse under moonlight and set an intention with the lunar energy",color:"#7FB3D3",stroke:"#AED6F1"},
+  {name:"Black Tourmaline",zodiac:"Capricorn · Scorpio",meaning:"A powerful shield against negative energy. It grounds your spirit like roots of an ancient tree, creating an unbreakable field of protection.",energies:["PROTECTION","GROUNDING","STRENGTH"],ritual:"✦ Place at each corner of your room to create a sacred sanctuary",color:"#2C3E50",stroke:"#85929E"},
+  {name:"Selenite",zodiac:"Gemini · Cancer",meaning:"Named for the moon goddess Selene. Selenite purifies the energy field, elevates vibration, and creates a direct channel to higher realms.",energies:["PURITY","CLARITY","DIVINE"],ritual:"✦ Run a selenite wand around your aura to cleanse your energy field",color:"#E8E8E8",stroke:"#D4AF37"},
+  {name:"Malachite",zodiac:"Capricorn · Taurus",meaning:"The stone of transformation. Malachite draws out hidden wounds to the surface, then transmutes them into growth, courage, and change.",energies:["CHANGE","COURAGE","HEART"],ritual:"✦ Meditate holding it and ask — what is ready to transform in me?",color:"#1E8449",stroke:"#58D68D"},
+  {name:"Labradorite",zodiac:"Leo · Scorpio",meaning:"The stone of magic and mystery. Labradorite shimmers between worlds, awakening psychic gifts and reminding you that you are infinite.",energies:["MAGIC","MYSTERY","AWAKENING"],ritual:"✦ Gaze into its surface by candlelight and ask for a vision or sign",color:"#2E86AB",stroke:"#76D7EA"},
+  {name:"Carnelian",zodiac:"Aries · Virgo",meaning:"The stone of action and passion. Carnelian ignites the sacred fire within — courage, creativity, and the will to pursue your dreams with fierce devotion.",energies:["COURAGE","PASSION","ACTION"],ritual:"✦ Carry it today and say: I move boldly toward what I desire",color:"#C0392B",stroke:"#F1948A"},
+  {name:"Clear Quartz",zodiac:"All Signs",meaning:"The master healer and amplifier. Clear quartz magnifies your intentions, purifies your energy, and acts as a mirror for your highest, truest self.",energies:["AMPLIFY","CLARITY","HEALING"],ritual:"✦ Hold it and speak your deepest intention three times with full presence",color:"#A9A9A9",stroke:"#E8E8E8"},
+  {name:"Sodalite",zodiac:"Sagittarius · Virgo",meaning:"The stone of deep thinking and truth-seeking. Sodalite aligns logic with intuition, bringing clarity to complex emotions and inspiring authentic communication.",energies:["LOGIC","TRUTH","CALM"],ritual:"✦ Place on your desk during study or creative work to sharpen focus",color:"#1A3A6B",stroke:"#5D8AC4"},
+];
+
+const BIRTHDAY_CRYSTALS_DB=[
+  {name:"Garnet",zodiac:"Capricorn · Aquarius",meaning:"A stone of devotion and deep love. Garnet energizes the soul, illuminates the path, and keeps your commitment to your highest self burning bright.",energies:["DEVOTION","ENERGY","PASSION"],ritual:"✦ Wear garnet close to your heart — it will feed your inner fire",color:"#8B0000",stroke:"#E74C3C"},
+  {name:"Amethyst",zodiac:"Pisces · Aquarius",meaning:"The stone of spiritual wisdom and calm. It protects your aura and opens the third eye, guiding you toward higher consciousness.",energies:["INTUITION","PEACE","CLARITY"],ritual:"✦ Place under your pillow tonight to receive dreams as messages",color:"#9B59B6",stroke:"#C084FC"},
+  {name:"Aquamarine",zodiac:"Pisces · Aries",meaning:"A stone of courage and flow. Like ocean water, it soothes the spirit, clears the mind, and helps you speak your truth with grace and fearlessness.",energies:["FLOW","COURAGE","CLARITY"],ritual:"✦ Hold it and take three deep breaths — let resistance melt away",color:"#2E86AB",stroke:"#76D7EA"},
+  {name:"Diamond · Herkimer",zodiac:"Aries · Taurus",meaning:"The stone of invincibility and pure light. It amplifies your inner radiance and reminds you that you are, at your core, unbreakable and luminous.",energies:["PURITY","STRENGTH","RADIANCE"],ritual:"✦ Set it in morning sunlight and meditate on your unshakeable worth",color:"#B0C4DE",stroke:"#E8F4FD"},
+  {name:"Emerald",zodiac:"Taurus · Gemini",meaning:"The stone of infinite patience and prosperity. Emerald opens the heart to give and receive love abundantly, and aligns you with natural cycles of renewal.",energies:["ABUNDANCE","LOVE","RENEWAL"],ritual:"✦ Write three things you wish to grow — then place the emerald on top",color:"#1E8449",stroke:"#58D68D"},
+  {name:"Pearl · Moonstone",zodiac:"Gemini · Cancer",meaning:"Born of the ocean's womb, pearl holds the energy of purity and wisdom earned through transformation. It teaches grace in difficulty.",energies:["GRACE","WISDOM","PURITY"],ritual:"✦ Reflect on what you have grown through — then honor yourself for it",color:"#D4AF37",stroke:"#F0D060"},
+  {name:"Ruby",zodiac:"Cancer · Leo",meaning:"The stone of life force and passion. Ruby ignites the divine flame within — vitality, love, and the courage to fully inhabit your own power.",energies:["VITALITY","PASSION","POWER"],ritual:"✦ Breathe deeply and feel your heartbeat — that is your ruby energy",color:"#C0392B",stroke:"#F1948A"},
+  {name:"Peridot",zodiac:"Leo · Virgo",meaning:"A stone of light and renewal. Peridot banishes old guilt and negative patterns, freeing you into a joyful, open-hearted relationship with the present moment.",energies:["RENEWAL","JOY","RELEASE"],ritual:"✦ Write one thing you release — then watch the morning light hit your crystal",color:"#3D9970",stroke:"#A9DFBF"},
+  {name:"Sapphire",zodiac:"Virgo · Libra",meaning:"The stone of wisdom and devotion. Sapphire brings celestial clarity to the mind and aligns you with your soul's highest calling, drawing in blessings and truth.",energies:["WISDOM","TRUTH","DEVOTION"],ritual:"✦ Sit in stillness and ask — what does my soul most need to know?",color:"#1A5276",stroke:"#5DADE2"},
+  {name:"Opal",zodiac:"Libra · Scorpio",meaning:"A stone of inspiration and prismatic creativity. Opal amplifies emotions, ignites the imagination, and reflects the full spectrum of your beautiful complexity.",energies:["CREATIVITY","MAGIC","EMOTION"],ritual:"✦ Create something today — even one sentence, one sketch, one song",color:"#A569BD",stroke:"#D7BDE2"},
+  {name:"Topaz · Citrine",zodiac:"Scorpio · Sagittarius",meaning:"A stone of manifestation and solar power. It strengthens your intentions, attracts abundance, and infuses every moment with warmth, confidence, and purpose.",energies:["ABUNDANCE","PURPOSE","JOY"],ritual:"✦ Speak your biggest dream aloud — the universe is listening today",color:"#D4AF37",stroke:"#F0D060"},
+  {name:"Turquoise",zodiac:"Sagittarius · Capricorn",meaning:"One of the oldest healing stones on Earth. Turquoise bridges the heavens and the earth, protecting the traveler and speaking truth through its sacred blue-green light.",energies:["PROTECTION","TRUTH","WHOLENESS"],ritual:"✦ Touch it when you feel scattered — let it bring you back to center",color:"#17A589",stroke:"#76D7C4"},
+];
+
+function getCrystalOfDay(){
+  const now=new Date();
+  const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
+  return CRYSTALS_DAY[doy%CRYSTALS_DAY.length];
+}
+
+function getCrystalByBirthday(dateStr){
+  const d=new Date(dateStr);
+  return BIRTHDAY_CRYSTALS_DB[d.getMonth()];
+}
+
+function buildCrystalSVG(color,stroke){
+  return `<svg width="18" height="18" viewBox="0 0 28 28" fill="none" style="flex-shrink:0">
+    <polygon points="14,1 27,9 22,27 6,27 1,9" fill="${color}" stroke="${stroke}" stroke-width="1.2" opacity="0.8"/>
+    <polygon points="14,4 24,10 20,24 8,24 4,10" fill="${stroke}" opacity="0.2"/>
+    <line x1="14" y1="1" x2="14" y2="27" stroke="${stroke}" stroke-width="0.6" opacity="0.5"/>
+    <line x1="1" y1="9" x2="27" y2="9" stroke="${stroke}" stroke-width="0.6" opacity="0.5"/>
+  </svg>`;
+}
+
+function renderCrystalWin(crystal){
+  const el=document.getElementById('crystal-insight');
+  if(!el) return;
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      ${buildCrystalSVG(crystal.color,crystal.stroke)}
+      <div>
+        <div style="font-family:'Cinzel Decorative',serif;font-size:15px;color:#fff;letter-spacing:1px;text-shadow:0 2px 16px rgba(192,132,252,.5);">${crystal.name}</div>
+        <div style="font-family:'Raleway',sans-serif;font-size:9px;color:rgba(212,175,55,.7);letter-spacing:2px;margin-top:2px;">${crystal.zodiac}</div>
+      </div>
+    </div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;color:rgba(255,255,255,.92);line-height:1.6;margin-bottom:10px;text-shadow:0 2px 20px rgba(0,0,0,.9);">"${crystal.meaning}"</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+      ${crystal.energies.map(e=>`<span style="font-family:'Raleway',sans-serif;font-size:9px;letter-spacing:1.5px;padding:3px 9px;border-radius:20px;background:rgba(192,132,252,.15);border:1px solid rgba(192,132,252,.35);color:rgba(192,132,252,.9);">${e}</span>`).join('')}
+    </div>
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.3),transparent);margin:8px 0;"></div>
+    <div style="font-family:'Raleway',sans-serif;font-size:10px;color:rgba(212,175,55,.85);letter-spacing:.5px;line-height:1.5;margin-bottom:12px;">${crystal.ritual}</div>
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.3),transparent);margin:8px 0 10px;"></div>
+    <div style="font-family:'Raleway',sans-serif;font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1.5px;margin-bottom:6px;">✦ PERSONALIZE BY BIRTHDAY</div>
+    <div style="display:flex;gap:6px;">
+      <input type="date" id="crystal-bday-input" style="flex:1;padding:6px 10px;background:rgba(26,15,46,.8);border:1px solid rgba(212,175,55,.25);border-radius:8px;color:#fff;font-family:'Raleway',sans-serif;font-size:11px;outline:none;">
+      <button onclick="applyCrystalBirthday()" style="padding:6px 12px;background:rgba(212,175,55,.18);border:1px solid rgba(212,175,55,.45);border-radius:8px;color:rgba(212,175,55,.95);font-family:'Raleway',sans-serif;font-size:10px;cursor:pointer;white-space:nowrap;">✦ My Crystal</button>
+    </div>
+    <div id="crystal-bday-label" style="font-family:'Raleway',sans-serif;font-size:9px;color:rgba(212,175,55,.6);letter-spacing:1px;margin-top:6px;min-height:12px;"></div>
+  `;
+}
+
+function applyCrystalBirthday(){
+  const val=document.getElementById('crystal-bday-input').value;
+  if(!val){notify('Please enter your birthday!');return;}
+  const crystal=getCrystalByBirthday(val);
+  renderCrystalWin(crystal);
+  const d=new Date(val);
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  setTimeout(()=>{
+    const lbl=document.getElementById('crystal-bday-label');
+    if(lbl) lbl.textContent='✦ Your '+months[d.getMonth()]+' birthstone — '+crystal.name;
+  },50);
+  notify('💎 Your crystal: '+crystal.name);
+}
+
+// init crystal on load
+setTimeout(()=>{
+  renderCrystalWin(getCrystalOfDay());
+  initAstroSignPicker();
+  renderTarotSlots();
+  setQuote();
+  initMoon();
+},100);
+
+// ── ASTROLOGY ──
+const SIGNS=[
+  {name:'Aries',symbol:'♈',emoji:'🐏',dates:'Mar 21 – Apr 19',element:'🔥 Fire · Cardinal',ruler:'Mars',color:'#C0392B',lucky:'Red · Tuesday · 9',avoid:'Impulsive decisions'},
+  {name:'Taurus',symbol:'♉',emoji:'🐂',dates:'Apr 20 – May 20',element:'🌿 Earth · Fixed',ruler:'Venus',color:'#1E8449',lucky:'Green · Friday · 6',avoid:'Stubbornness'},
+  {name:'Gemini',symbol:'♊',emoji:'👯',dates:'May 21 – Jun 20',element:'💨 Air · Mutable',ruler:'Mercury',color:'#F0D060',lucky:'Yellow · Wednesday · 5',avoid:'Overthinking'},
+  {name:'Cancer',symbol:'♋',emoji:'🦀',dates:'Jun 21 – Jul 22',element:'🌊 Water · Cardinal',ruler:'Moon',color:'#7FB3D3',lucky:'Silver · Monday · 2',avoid:'Withdrawal'},
+  {name:'Leo',symbol:'♌',emoji:'🦁',dates:'Jul 23 – Aug 22',element:'🔥 Fire · Fixed',ruler:'Sun',color:'#D4AF37',lucky:'Gold · Sunday · 1',avoid:'Pride'},
+  {name:'Virgo',symbol:'♍',emoji:'🌾',dates:'Aug 23 – Sep 22',element:'🌿 Earth · Mutable',ruler:'Mercury',color:'#8E8E5A',lucky:'Navy · Wednesday · 6',avoid:'Perfectionism'},
+  {name:'Libra',symbol:'♎',emoji:'⚖️',dates:'Sep 23 – Oct 22',element:'💨 Air · Cardinal',ruler:'Venus',color:'#D4608C',lucky:'Pink · Friday · 7',avoid:'Indecision'},
+  {name:'Scorpio',symbol:'♏',emoji:'🦂',dates:'Oct 23 – Nov 21',element:'🌊 Water · Fixed',ruler:'Pluto',color:'#6C3483',lucky:'Crimson · Tuesday · 8',avoid:'Jealousy'},
+  {name:'Sagittarius',symbol:'♐',emoji:'🏹',dates:'Nov 22 – Dec 21',element:'🔥 Fire · Mutable',ruler:'Jupiter',color:'#7D3C98',lucky:'Purple · Thursday · 3',avoid:'Restlessness'},
+  {name:'Capricorn',symbol:'♑',emoji:'🐐',dates:'Dec 22 – Jan 19',element:'🌿 Earth · Cardinal',ruler:'Saturn',color:'#566573',lucky:'Brown · Saturday · 8',avoid:'Rigidity'},
+  {name:'Aquarius',symbol:'♒',emoji:'🏺',dates:'Jan 20 – Feb 18',element:'💨 Air · Fixed',ruler:'Uranus',color:'#2E86AB',lucky:'Blue · Saturday · 4',avoid:'Detachment'},
+  {name:'Pisces',symbol:'♓',emoji:'🐟',dates:'Feb 19 – Mar 20',element:'🌊 Water · Mutable',ruler:'Neptune',color:'#9B59B6',lucky:'Lavender · Thursday · 7',avoid:'Escapism'},
+];
+
+const HOROSCOPES={
+  Aries:[
+    "The ram charges forward with renewed confidence today. A door you thought was closed swings open — walk through it without hesitation. Your natural leadership is exactly what someone around you needs right now.",
+    "Mars ignites your ambitions like wildfire today. Channel this intensity into one focused goal rather than scattering your energy. By evening, a conversation could spark something deeply exciting.",
+    "Today calls you to slow the charge and listen. Beneath the surface of a situation lies a truth that only patience will reveal. Trust that stillness can be your greatest strength.",
+    "Your boldness is magnetic today — others are drawn to your fire. A creative risk you've been contemplating deserves a brave first step. The universe is watching and cheering you forward.",
+    "Old wounds around independence rise to be healed. You don't need to fight every battle alone. Allow someone to stand beside you today — vulnerability is its own kind of courage.",
+  ],
+  Taurus:[
+    "Venus wraps you in a golden haze of beauty and ease today. Your senses are heightened — let yourself truly taste, touch, and appreciate the richness already surrounding you.",
+    "Patience is your superpower, and today it pays dividends. Something you've been steadily building begins to show its first blooms. Stay rooted. The harvest is closer than you think.",
+    "A financial or creative matter asks for your practical wisdom. Your ability to see long-term value where others see risk is a rare gift. Trust your grounded instincts completely.",
+    "Your loyalty is being recognized in quiet ways today. Someone who matters to you sees all the steady effort you give. Let their appreciation soften any stubbornness you're holding.",
+    "Beauty calls to you with unusual intensity today — answer it. Whether through art, nature, food, or music, nourishing your senses replenishes everything else in your life.",
+  ],
+  Gemini:[
+    "Mercury dances through your mind today, sparking ideas like fireflies at dusk. Write everything down — one of these sparks will illuminate your entire path forward.",
+    "A conversation you've been avoiding becomes unavoidable today, but it goes far better than feared. Your gift for words transforms tension into understanding and opens new doors.",
+    "Two seemingly opposite desires pull at you — and today you realize they can coexist beautifully. You don't have to choose. Integration is your magic.",
+    "Your curiosity leads you somewhere unexpected and wonderful today. Follow the thread of interest no matter how far it takes you. Discovery is your most sacred practice.",
+    "Someone from your past appears in thought or reality, carrying a message worth receiving. The connections we release still carry love — and sometimes they return to remind us.",
+  ],
+  Cancer:[
+    "The Moon, your celestial mother, holds you close today. Your intuition is a precision instrument — trust every feeling, even the ones that don't yet have words.",
+    "Home and sanctuary call to you with unusual tenderness. Creating beauty in your space isn't indulgence — it's spiritual medicine. Tend your nest and watch your whole life bloom.",
+    "Your empathy today is extraordinary, almost overwhelming. Remember to come back to your own shores after swimming in others' emotions. You matter deeply too.",
+    "A creative project rooted in deep personal feeling is ready to move forward. The vulnerability required is exactly what will make it powerful and true.",
+    "Someone needs your nurturing presence more than they can say. Your ability to make others feel seen and held is one of the most sacred gifts a soul can carry.",
+  ],
+  Leo:[
+    "The Sun, your ruling star, floods your heart with radiant confidence today. You were born to shine — and today, the world is ready to receive your full light without reservation.",
+    "A creative vision that has lived quietly inside you is ready for its grand debut. Begin. Even the smallest first step taken publicly signals the universe your readiness.",
+    "Recognition arrives today, perhaps from an unexpected quarter. Receive it with the grace of someone who always believed it was coming. Because you always did.",
+    "Your generosity of spirit lifts everyone around you today. When you give from your deepest heart rather than seeking applause, the applause becomes irrelevant — and arrives anyway.",
+    "A moment of playfulness today unlocks a creative solution you've been seeking for weeks. Joy is not a distraction from your purpose — it is the direct path to it.",
+  ],
+  Virgo:[
+    "Mercury gifts your already precise mind with extraordinary clarity today. The solution you've been searching for emerges when you stop trying to force it and simply observe.",
+    "Your dedication to service and craft reaches a beautiful crescendo today. The details you tend with such love are noticed — by the universe if not yet by others.",
+    "Let yourself rest in imperfection today. The work doesn't need to be flawless to be meaningful. Done with love is always better than perfect and withheld.",
+    "A health or wellness insight arrives today with the gentle force of truth. Your body is always speaking — today it's using words you can finally understand.",
+    "Someone benefits enormously from your practical help today. Your ability to see clearly what others need and then provide it exactly is a form of profound love.",
+  ],
+  Libra:[
+    "Venus adorns your world in harmony and beauty today. Relationships feel softer, more forgiving. Reach toward someone with an olive branch — peace is always the stronger choice.",
+    "The scales tip toward creativity today. An aesthetic vision you've held quietly is ready to be brought into form. Your sense of beauty is guidance, not vanity.",
+    "A decision you've been weighing reveals its natural answer today — not through more analysis, but through a feeling of quiet rightness that settles in your chest.",
+    "Justice and fairness call to you in a situation that needs your balanced perspective. Your ability to hold multiple truths simultaneously is exactly what this moment requires.",
+    "Someone whose company fills you with lightness appears today. Allow yourself to simply enjoy the gift of this connection without agenda or analysis.",
+  ],
+  Scorpio:[
+    "Pluto stirs the depths today, bringing hidden truths to the luminous surface. What is revealed, while intense, contains the seeds of your most profound transformation yet.",
+    "Your perceptions today cut through illusion like moonlight through fog. Trust what you sense beneath what is said. Your intuition is a compass that does not lie.",
+    "Something you once held tightly is ready to be released. The phoenix cannot rise without first surrendering the old form. Let go — your resurrection is already beginning.",
+    "A deep emotional truth surfaces today, asking to be honored rather than controlled. Feel it fully. Your willingness to descend into darkness is what gives you power in the light.",
+    "An unexpected ally reveals themselves today. Someone who has watched you from a distance steps forward with exactly the support you need. Trust is earned — and today it is.",
+  ],
+  Sagittarius:[
+    "Jupiter expands your vision to cosmic proportions today. A possibility you dismissed as too large, too impossible, too far — deserves a second, braver look. Aim higher.",
+    "Your philosophical nature encounters a truth today that rearranges something fundamental. Welcome the disruption. The journey toward wisdom always requires leaving old maps behind.",
+    "Adventure calls — even if it's simply an adventure of the mind. A book, a conversation, a direction unexplored. Follow your arrow wherever it points today.",
+    "Your infectious optimism today is a genuine force for healing in the lives around you. Don't underestimate what your belief in possibility does for those still learning to hope.",
+    "A truth you've been sitting with quietly is ready to be spoken. Your honesty, delivered with compassion, could change the entire trajectory of an important situation.",
+  ],
+  Capricorn:[
+    "Saturn rewards your patient dedication with a concrete sign of progress today. The mountain you've been climbing reveals a new vista — and it is more beautiful than imagined.",
+    "Your ambition today is laser-focused and deeply grounded. What you build in this energy has the structural integrity to last decades. Build with full intention.",
+    "The weight of responsibility feels different today — lighter, more purposeful. You realize you carry it not out of obligation but out of genuine love for what you're creating.",
+    "A mentor or elder carries a message for you today. Wisdom offered freely is treasure — receive it without the pride that sometimes makes you think you must figure it all out alone.",
+    "Allow yourself a moment of celebration today. You've earned it many times over. Acknowledging your own progress is not arrogance — it is sacred self-respect.",
+  ],
+  Aquarius:[
+    "Uranus sparks sudden flashes of brilliant insight today — keep a notebook close. An idea that arrives seemingly from nowhere is actually the universe delivering what you've been asking for.",
+    "Your vision for a better, more equitable world finds practical expression today. One small act of innovation or community creates ripples you'll never fully see — but the universe counts them.",
+    "A friendship reveals new depth today, surprising you both. You are most yourself in the company of those who match your frequency. Treasure this one.",
+    "Your detachment today is not coldness — it is the clarity of the seer. From a higher perspective, a situation that seemed chaotic resolves into perfect, understandable pattern.",
+    "The future you're building calls for your full weird, brilliant, unprecedented self. Stop trying to make your vision palatable. Its strangeness is precisely its power.",
+  ],
+  Pisces:[
+    "Neptune dissolves all boundaries today, and you drift between worlds with extraordinary grace. Your art, your dreams, your intuitions carry urgent messages from the deep — listen.",
+    "Compassion flows through you like a sacred river today. You heal others simply by being present with them. Your empathy is not weakness — it is your most luminous power.",
+    "A dream you barely remembered lingers with unusual significance today. Write it down. Your unconscious mind is sending guidance your waking self needs to receive.",
+    "Spiritual practice calls to you with unusual urgency today. Whether through meditation, creativity, or simply time in nature — you need to remember who you are beneath all roles.",
+    "Your imagination today is a portal to genuinely magical places. Let it roam freely. The visions arriving are not escapism — they are previews of what you are capable of creating.",
+  ],
+};
+
+let selectedSign=null;
+
+function initAstroSignPicker(){
+  const grid=document.getElementById('astro-sign-picker');
+  grid.innerHTML=SIGNS.map(s=>`
+    <button onclick="selectSign('${s.name}')" style="
+      background:rgba(26,15,46,.6);
+      border:1px solid rgba(212,175,55,.2);
+      border-radius:10px;
+      padding:8px 4px;
+      width:100%;
+      aspect-ratio:1;
+      cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;gap:3px;
+      transition:all .2s;
+    " onmouseover="this.style.borderColor='${s.color}';this.style.background='rgba(26,15,46,.9)'" onmouseout="this.style.borderColor='rgba(212,175,55,.2)';this.style.background='rgba(26,15,46,.6)'">
+      <span style="font-size:16px;">${s.symbol}</span>
+      <span style="font-family:'Raleway',sans-serif;font-size:8px;color:rgba(212,175,55,.7);letter-spacing:.5px;">${s.name}</span>
+    </button>
+  `).join('');
+}
+
+function selectSign(name){
+  selectedSign=SIGNS.find(s=>s.name===name);
+  const now=new Date();
+  const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/86400000);
+  const horoscopes=HOROSCOPES[name];
+  const reading=horoscopes[doy%horoscopes.length];
+
+  // seeded randoms based on date + sign
+  const seed=(doy*31+SIGNS.indexOf(selectedSign)*7);
+  const love=40+((seed*13)%51);
+  const career=35+((seed*17)%56);
+  const energy=45+((seed*11)%46);
+
+  document.getElementById('astro-sign-picker').style.display='none';
+  const readingEl=document.getElementById('astro-reading');
+  readingEl.style.display='block';
+
+  document.getElementById('astro-symbol').textContent=selectedSign.symbol;
+  document.getElementById('astro-sign-name').textContent=selectedSign.name;
+  document.getElementById('astro-dates').textContent=selectedSign.dates.toUpperCase();
+  document.getElementById('astro-element').textContent=selectedSign.element+' · Ruled by '+selectedSign.ruler;
+  document.getElementById('astro-today').textContent='"'+reading+'"';
+  document.getElementById('astro-lucky').textContent=selectedSign.lucky;
+  document.getElementById('astro-avoid').textContent=selectedSign.avoid;
+
+  // emoji ratings
+  document.getElementById('astro-love').textContent=love>75?'💕💕💕':love>50?'💕💕':'💕';
+  document.getElementById('astro-career').textContent=career>75?'⭐⭐⭐':career>50?'⭐⭐':'⭐';
+  document.getElementById('astro-energy').textContent=energy>75?'✨✨✨':energy>50?'✨✨':'✨';
+
+  // bars
+  setTimeout(()=>{
+    document.querySelector('#astro-love-bar div').style.width=love+'%';
+    document.querySelector('#astro-career-bar div').style.width=career+'%';
+    document.querySelector('#astro-energy-bar div').style.width=energy+'%';
+  },100);
+
+  notify('⭐ '+name+' horoscope revealed!');
+}
+
+function showAstroSignPicker(){
+  document.getElementById('astro-sign-picker').style.display='grid';
+  document.getElementById('astro-reading').style.display='none';
+}
+
+// ── TAROT ──
+const TAROT_CARDS=[
+  {name:"The Fool",symbol:"🌟",upright:"New beginnings, innocence, spontaneity. A leap of faith awaits you — trust the journey even without a clear destination.",reversed_meaning:"Recklessness, risk-taking without thought. Pause before you leap today."},
+  {name:"The Magician",symbol:"⚡",upright:"Willpower, skill, manifestation. You have all the tools you need. The universe is asking you to use them boldly.",reversed_meaning:"Manipulation, poor planning. Your power is real — use it with integrity."},
+  {name:"The High Priestess",symbol:"🌙",upright:"Intuition, mystery, the subconscious. Trust what you feel beneath the surface — your inner knowing is a lantern in the dark.",reversed_meaning:"Secrets, disconnection from intuition. Reconnect with your inner voice before deciding."},
+  {name:"The Empress",symbol:"🌸",upright:"Fertility, abundance, nurturing. You are being called to create, to grow, to tend the garden of your life with loving devotion.",reversed_meaning:"Dependence, creative block. Nourish yourself first before you can nourish others."},
+  {name:"The Emperor",symbol:"👑",upright:"Authority, structure, stability. Build something with intention and discipline — the foundations you lay now will last.",reversed_meaning:"Rigidity, control. Loosen your grip — not everything can be controlled, and that is okay."},
+  {name:"The Hierophant",symbol:"🔑",upright:"Tradition, spiritual guidance, education. Seek wisdom from a teacher, a tradition, or your own deepest beliefs.",reversed_meaning:"Rebellion, subversiveness. It may be time to question what you've been taught and find your own truth."},
+  {name:"The Lovers",symbol:"💕",upright:"Love, harmony, choices. A significant choice aligns with your values and your heart — choose from love, not fear.",reversed_meaning:"Imbalance, misalignment. Examine what you truly value before committing."},
+  {name:"The Chariot",symbol:"🌊",upright:"Determination, control, victory. You have the will to overcome any obstacle. Move forward with focused, unstoppable energy.",reversed_meaning:"Lack of direction, aggression. Redirect your power — force without vision leads nowhere."},
+  {name:"Strength",symbol:"🦁",upright:"Courage, patience, inner strength. True power today comes not from force but from grace, compassion, and quiet confidence.",reversed_meaning:"Self-doubt, weakness. You are stronger than you believe — the fear is not the truth."},
+  {name:"The Hermit",symbol:"🕯",upright:"Soul-searching, introspection, inner guidance. Retreat from the noise. The answers you seek are already within you.",reversed_meaning:"Isolation, loneliness. The time for solitude has passed — it's safe to rejoin the world."},
+  {name:"Wheel of Fortune",symbol:"☯",upright:"Cycles, fate, turning points. A great change is turning in your favor. Trust the natural rhythm of life's beautiful wheel.",reversed_meaning:"Bad luck, resistance to change. What feels like loss may be clearing space for something greater."},
+  {name:"Justice",symbol:"⚖",upright:"Truth, fairness, law. The universe sees clearly. What is right will prevail — act with integrity and trust the outcome.",reversed_meaning:"Unfairness, dishonesty. Seek balance within yourself before seeking it in the world."},
+  {name:"The Hanged Man",symbol:"🌿",upright:"Surrender, new perspectives, patience. Release the need to control. In surrender comes the deepest wisdom.",reversed_meaning:"Delays, resistance. What are you still clinging to that no longer serves?"},
+  {name:"Death",symbol:"🦋",upright:"Transformation, endings, transition. Something beautiful is ending so something more beautiful can begin. Trust the metamorphosis.",reversed_meaning:"Resistance to change, stagnation. You cannot hold back the dawn — let the old self release."},
+  {name:"Temperance",symbol:"🌈",upright:"Balance, moderation, patience. Find the middle path. The alchemy happening within you is creating something extraordinary.",reversed_meaning:"Imbalance, excess. Notice where you've been overdoing — recalibrate toward harmony."},
+  {name:"The Devil",symbol:"🔗",upright:"Shadow self, attachment, restriction. What chains you is not as strong as it appears. Awareness is the first key to liberation.",reversed_meaning:"Release, reclaiming power. You are breaking free from something that has held you far too long."},
+  {name:"The Tower",symbol:"⚡",upright:"Sudden change, upheaval, revelation. What is being dismantled was not serving your highest good. Trust the beautiful chaos of becoming.",reversed_meaning:"Avoiding disaster, fear of change. The tower falls gently when you release it with grace."},
+  {name:"The Star",symbol:"✨",upright:"Hope, faith, renewal. You are being bathed in celestial light. After the storm comes this — serenity, healing, and infinite hope.",reversed_meaning:"Despair, lost faith. Your star has not gone out. Rest, and it will shine again."},
+  {name:"The Moon",symbol:"🌕",upright:"Illusion, fear, the unconscious. Not everything is as it appears. Trust your feelings over logic — something hidden will soon be revealed.",reversed_meaning:"Release of fear, truth. The fog is lifting. What was confusing begins to clarify beautifully."},
+  {name:"The Sun",symbol:"☀",upright:"Joy, success, vitality. This is a day of warmth and radiant possibility. Let yourself be seen, celebrated, and fully alive.",reversed_meaning:"Temporary sadness, inner child wounds. The sun is still there behind the clouds — it always returns."},
+  {name:"Judgement",symbol:"🔔",upright:"Reflection, reckoning, awakening. A calling is sounding — the universe is asking you to rise into your highest self.",reversed_meaning:"Self-doubt, ignoring the call. The awakening is yours — stop waiting for permission to become who you are."},
+  {name:"The World",symbol:"🌍",upright:"Completion, integration, accomplishment. You have arrived. A cycle completes in absolute wholeness — celebrate everything you've become.",reversed_meaning:"Incompletion, shortcuts. The final steps matter most — see this through to its beautiful end."},
+];
+const TAROT_POSITIONS=['Past','Present','Future'];
+let tarotMode='day';
+let tarotCards=[];
+let tarotFlipped=[];
+
+function setTarotMode(m){
+  tarotMode=m;
+  tarotCards=[];tarotFlipped=[];
+  document.getElementById('tarot-tab-day').style.background=m==='day'?'rgba(212,175,55,.18)':'transparent';
+  document.getElementById('tarot-tab-day').style.color=m==='day'?'#D4AF37':'#C4B5D4';
+  document.getElementById('tarot-tab-day').style.borderColor=m==='day'?'rgba(212,175,55,.4)':'rgba(212,175,55,.2)';
+  document.getElementById('tarot-tab-spread').style.background=m==='spread'?'rgba(212,175,55,.18)':'transparent';
+  document.getElementById('tarot-tab-spread').style.color=m==='spread'?'#D4AF37':'#C4B5D4';
+  document.getElementById('tarot-tab-spread').style.borderColor=m==='spread'?'rgba(212,175,55,.4)':'rgba(212,175,55,.2)';
+  renderTarotSlots();
+  document.getElementById('tarot-meaning').innerHTML='<div style="font-family:\'Cormorant Garamond\',serif;font-size:13px;font-style:italic;color:rgba(212,175,55,.5);text-align:center;">Draw your cards to receive a reading...</div>';
+  document.getElementById('tarot-draw-btn').textContent='✦ Draw Cards';
+}
+
+function drawTarotCards(){
+  const count=tarotMode==='day'?1:3;
+  const shuffled=[...TAROT_CARDS].sort(()=>Math.random()-.5);
+  tarotCards=shuffled.slice(0,count).map(c=>({...c,reversed:Math.random()>.7}));
+  tarotFlipped=new Array(count).fill(false);
+  renderTarotSlots();
+  document.getElementById('tarot-draw-btn').textContent='✦ Redraw';
+  document.getElementById('tarot-meaning').innerHTML='<div style="font-family:\'Cormorant Garamond\',serif;font-size:13px;font-style:italic;color:rgba(212,175,55,.6);text-align:center;">Tap a card to reveal its message...</div>';
+}
+
+function renderTarotSlots(){
+  const row=document.getElementById('tarot-cards-row');
+  if(!row) return;
+  const count=tarotMode==='day'?1:3;
+  if(!tarotCards.length){
+    row.innerHTML=Array.from({length:count},(_,i)=>`
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        ${tarotMode==='spread'?`<div style="font-size:9px;color:rgba(212,175,55,.7);letter-spacing:2px;font-family:'Raleway',sans-serif;">${TAROT_POSITIONS[i]}</div>`:''}
+        <div style="width:72px;height:118px;border-radius:10px;background:linear-gradient(135deg,#2D1454,#6B21A8);border:1px solid rgba(212,175,55,.4);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:22px;opacity:.3;">✦</span>
+        </div>
+      </div>`).join('');
+    return;
+  }
+  row.innerHTML=tarotCards.map((c,i)=>`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      ${tarotMode==='spread'?`<div style="font-size:9px;color:rgba(212,175,55,.7);letter-spacing:2px;font-family:'Raleway',sans-serif;">${TAROT_POSITIONS[i]}</div>`:''}
+      <div onclick="flipTarotCard(${i})" style="width:72px;height:118px;cursor:pointer;perspective:600px;">
+        <div id="tarot-inner-${i}" style="width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,0,.2,1);${tarotFlipped[i]?'transform:rotateY(180deg)':''}">
+          <div style="position:absolute;inset:0;border-radius:10px;background:linear-gradient(135deg,#2D1454,#6B21A8);border:1px solid rgba(212,175,55,.5);backface-visibility:hidden;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:22px;opacity:.35;">✦</span>
+          </div>
+          <div style="position:absolute;inset:0;border-radius:10px;background:linear-gradient(160deg,#1A0F2E,#2D1454);border:2px solid rgba(212,175,55,.7);backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;transform:rotateY(180deg)${c.reversed?' rotate(180deg)':''};">
+            <div style="font-size:24px;margin-bottom:4px;">${c.symbol}</div>
+            <div style="font-size:7.5px;color:#D4AF37;text-align:center;letter-spacing:.8px;line-height:1.3;">${c.name}</div>
+            ${c.reversed?'<div style="font-size:6.5px;color:rgba(224,108,117,.9);margin-top:2px;letter-spacing:1px;">REVERSED</div>':''}
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function flipTarotCard(i){
+  if(!tarotCards.length) return;
+  tarotFlipped[i]=true;
+  const inner=document.getElementById('tarot-inner-'+i);
+  if(inner) inner.style.transform='rotateY(180deg)';
+  const c=tarotCards[i];
+  const meaning=c.reversed?c.reversed_meaning:c.upright;
+  const posLabel=tarotMode==='spread'?`<div style="font-size:9px;color:rgba(212,175,55,.6);letter-spacing:2px;font-family:'Raleway',sans-serif;margin-bottom:4px;">${TAROT_POSITIONS[i].toUpperCase()}</div>`:'';
+  document.getElementById('tarot-meaning').innerHTML=`
+    ${posLabel}
+    <div style="font-family:'Cinzel Decorative',serif;font-size:9px;color:${c.reversed?'rgba(224,108,117,.9)':'#D4AF37'};letter-spacing:2px;margin-bottom:6px;">${c.reversed?'☽ REVERSED':'✦ UPRIGHT'}</div>
+    <div style="font-family:'Cinzel Decorative',serif;font-size:13px;color:#fff;margin-bottom:6px;">${c.symbol} ${c.name}</div>
+    <div style="height:1px;background:linear-gradient(to right,transparent,rgba(212,175,55,.3),transparent);margin:6px 0;"></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:13px;font-style:italic;color:#C4B5D4;line-height:1.6;">"${meaning}"</div>`;
+  notify('🃏 '+c.name+(c.reversed?' (Reversed)':''));
+}
+
+// ── CANDLE TIMER ──
+(function(){
+  const canvas=document.getElementById('candle-canvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const W=180, H=220;
+  let animFrame=null;
+
+  // candle state — driven by pomodoro
+  let meltPct=0; // 0 = full candle, 1 = fully melted
+  let flickerPhase=0;
+  let flicker2=0;
+  let drips=[];
+  let sparkles=[];
+  let extinguished=false;
+  let justReset=false;
+  let resetAnim=0; // 0-1 for regrow animation
+
+  function addDrip(x,startY){
+    drips.push({x:x+(Math.random()-0.5)*6, y:startY, vy:0.3+Math.random()*0.4, length:6+Math.random()*14, alpha:0.85, done:false});
+  }
+
+  function addSparkle(x,y){
+    for(let i=0;i<3;i++){
+      const angle=Math.random()*Math.PI*2;
+      sparkles.push({x,y,vx:Math.cos(angle)*(0.5+Math.random()*1.5),vy:Math.sin(angle)*(0.5+Math.random()*1.5)-1,life:1,decay:0.04+Math.random()*0.03,size:1+Math.random()*2});
+    }
+  }
+
+  function drawCandle(){
+    ctx.clearRect(0,0,W,H);
+
+    ctx.fillStyle='rgba(8,3,18,0.0)';
+    ctx.fillRect(0,0,W,H);
+
+    flickerPhase+=0.07+Math.random()*0.04;
+    flicker2+=0.13;
+
+    const flicker=Math.sin(flickerPhase)*3+Math.sin(flicker2)*1.5;
+    const cx=W/2;
+
+    // candle geometry
+    const candleW=44;
+    const candleBaseY=H-18;
+    const candleFullH=140;
+    const candleH=candleFullH*(1-meltPct);
+    const candleTopY=candleBaseY-candleH;
+
+    // melt pool spreads wider as candle melts
+    const meltPoolW = (candleW/2) + meltPct * 14;
+    const meltPoolDepth = 6 + meltPct * 10;
+
+    // === AMBIENT GLOW BEHIND CANDLE ===
+    if(!extinguished){
+      const glowR=55+Math.sin(flickerPhase)*5;
+      const glow=ctx.createRadialGradient(cx,candleTopY-10,2,cx,candleTopY-10,glowR);
+      glow.addColorStop(0,'rgba(255,200,80,0.22)');
+      glow.addColorStop(0.4,'rgba(255,140,40,0.10)');
+      glow.addColorStop(0.7,'rgba(192,80,200,0.06)');
+      glow.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(cx,candleTopY-10,glowR,0,Math.PI*2);
+      ctx.fillStyle=glow;
+      ctx.fill();
+    }
+
+    // === WAX DRIPS ===
+    drips.forEach(d=>{
+      if(d.done) return;
+      d.y+=d.vy;
+      d.vy=Math.min(d.vy+0.008, 0.9); // gravity acceleration
+      if(d.y>candleBaseY+6){d.done=true;return;}
+      ctx.save();
+      ctx.globalAlpha=d.alpha*0.85;
+      // drip teardrop shape
+      const dripH=d.length*(1+meltPct*0.5);
+      ctx.beginPath();
+      ctx.moveTo(d.x,d.y+4); // teardrop bottom
+      ctx.bezierCurveTo(d.x+5,d.y,d.x+4,d.y-dripH*0.5,d.x+2.5,d.y-dripH);
+      ctx.lineTo(d.x-2.5,d.y-dripH);
+      ctx.bezierCurveTo(d.x-4,d.y-dripH*0.5,d.x-5,d.y,d.x,d.y+4);
+      ctx.closePath();
+      const dg=ctx.createLinearGradient(d.x-4,d.y-dripH,d.x+4,d.y+4);
+      dg.addColorStop(0,'rgba(255,248,225,0.95)');
+      dg.addColorStop(0.4,'rgba(240,220,160,0.9)');
+      dg.addColorStop(1,'rgba(200,170,100,0.7)');
+      ctx.fillStyle=dg;
+      ctx.fill();
+      // highlight sheen on drip
+      ctx.beginPath();
+      ctx.ellipse(d.x-1,d.y-dripH*0.6,1,dripH*0.15,0,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,240,0.5)';
+      ctx.fill();
+      ctx.restore();
+    });
+    drips=drips.filter(d=>!d.done);
+
+    // drip frequency increases with melt level
+    const dripChance = 0.008 + meltPct * 0.025;
+    if(!extinguished && meltPct>0.04 && Math.random()<dripChance){
+      // drips come from the melt pool edge
+      const side = Math.random() > 0.5 ? 1 : -1;
+      const dripX = cx + side*(candleW/2 - 2 - Math.random()*8);
+      addDrip(dripX, candleTopY + meltPoolDepth - 2);
+    }
+    // occasional center drip
+    if(!extinguished && meltPct>0.2 && Math.random()<0.004){
+      addDrip(cx+(Math.random()-0.5)*6, candleTopY+meltPoolDepth);
+    }
+
+    // === CANDLE BODY ===
+    if(candleH>2){
+      // base shadow — grows as candle melts
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx,candleBaseY+4,candleW/2+5+meltPct*4,7+meltPct*3,0,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.4)';
+      ctx.fill();
+      ctx.restore();
+
+      // solidified wax drip trails on the candle sides
+      if(meltPct>0.08){
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(cx-candleW/2, candleTopY, candleW, candleH, [8,8,4,4]);
+        ctx.clip();
+        // left side trail
+        ctx.beginPath();
+        ctx.moveTo(cx-candleW/2+5, candleTopY+meltPoolDepth);
+        ctx.quadraticCurveTo(cx-candleW/2+3, candleTopY+meltPoolDepth+candleH*0.3*meltPct, cx-candleW/2+6, candleTopY+meltPoolDepth+candleH*0.55*meltPct);
+        ctx.lineWidth=3+meltPct*4;
+        ctx.strokeStyle=`rgba(240,220,160,${0.3+meltPct*0.4})`;
+        ctx.lineCap='round';
+        ctx.stroke();
+        // right side trail
+        ctx.beginPath();
+        ctx.moveTo(cx+candleW/2-8, candleTopY+meltPoolDepth);
+        ctx.quadraticCurveTo(cx+candleW/2-4, candleTopY+meltPoolDepth+candleH*0.25*meltPct, cx+candleW/2-7, candleTopY+meltPoolDepth+candleH*0.4*meltPct);
+        ctx.lineWidth=2+meltPct*3;
+        ctx.strokeStyle=`rgba(240,220,160,${0.25+meltPct*0.35})`;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // main body gradient — warms in color as it melts
+      const warmth = meltPct * 0.15;
+      const bodyG=ctx.createLinearGradient(cx-candleW/2,0,cx+candleW/2,0);
+      bodyG.addColorStop(0,`rgba(${180+Math.round(warmth*40)},${140+Math.round(warmth*20)},${100},1)`);
+      bodyG.addColorStop(0.18,'#FFF8EC');
+      bodyG.addColorStop(0.5,'#FFF0D0');
+      bodyG.addColorStop(0.82,'#EDD898');
+      bodyG.addColorStop(1,`rgba(${180+Math.round(warmth*40)},${140+Math.round(warmth*20)},${100},1)`);
+      ctx.beginPath();
+      ctx.roundRect(cx-candleW/2, candleTopY, candleW, candleH, [8,8,4,4]);
+      ctx.fillStyle=bodyG;
+      ctx.fill();
+
+      // vertical texture lines + wax rings (horizontal bands)
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(cx-candleW/2, candleTopY, candleW, candleH, [8,8,4,4]);
+      ctx.clip();
+      // vertical streaks
+      [0.22,0.5,0.78].forEach(tx=>{
+        ctx.beginPath();
+        ctx.moveTo(cx-candleW/2+candleW*tx, candleTopY);
+        ctx.lineTo(cx-candleW/2+candleW*tx, candleBaseY);
+        ctx.strokeStyle='rgba(180,150,100,0.10)';
+        ctx.lineWidth=1;
+        ctx.stroke();
+      });
+      // horizontal wax rings — more visible as melting progresses
+      const ringCount = 4;
+      for(let r=0;r<ringCount;r++){
+        const ry = candleTopY + (candleH/(ringCount+1))*(r+1);
+        ctx.beginPath();
+        ctx.moveTo(cx-candleW/2+2, ry);
+        ctx.lineTo(cx+candleW/2-2, ry);
+        ctx.strokeStyle=`rgba(200,175,120,${0.08+meltPct*0.1})`;
+        ctx.lineWidth=1;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // === MELT POOL — grows wider and deeper with melt ===
+      ctx.save();
+      // pool rim shadow
+      ctx.beginPath();
+      ctx.ellipse(cx, candleTopY+meltPoolDepth*0.6, meltPoolW+3, meltPoolDepth*0.55, 0, 0, Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.18)';
+      ctx.fill();
+      // glowing liquid wax pool
+      const poolG=ctx.createRadialGradient(cx-4,candleTopY+3,1,cx,candleTopY+meltPoolDepth*0.5,meltPoolW);
+      poolG.addColorStop(0,'rgba(255,245,180,0.98)');
+      poolG.addColorStop(0.3,'rgba(255,220,120,0.92)');
+      poolG.addColorStop(0.65,'rgba(235,195,100,0.85)');
+      poolG.addColorStop(1,'rgba(205,170,85,0.6)');
+      ctx.beginPath();
+      ctx.ellipse(cx, candleTopY+meltPoolDepth*0.5, meltPoolW, meltPoolDepth*0.55, 0, 0, Math.PI*2);
+      ctx.fillStyle=poolG;
+      ctx.fill();
+      // warm glow reflection from flame inside pool
+      if(!extinguished){
+        const t=Date.now()/1000;
+        const glowPulse=Math.sin(t*3)*0.15+0.85;
+        ctx.beginPath();
+        ctx.ellipse(cx, candleTopY+meltPoolDepth*0.4, meltPoolW*0.45*glowPulse, meltPoolDepth*0.22, 0, 0, Math.PI*2);
+        ctx.fillStyle=`rgba(255,200,80,${0.25*glowPulse})`;
+        ctx.fill();
+      }
+      // pool rim highlight
+      ctx.beginPath();
+      ctx.ellipse(cx, candleTopY+meltPoolDepth*0.5, meltPoolW, meltPoolDepth*0.55, 0, 0, Math.PI*2);
+      ctx.strokeStyle='rgba(255,245,200,0.35)';
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+      // inner rim darker edge
+      ctx.beginPath();
+      ctx.ellipse(cx, candleTopY+meltPoolDepth*0.5, meltPoolW*0.92, meltPoolDepth*0.45, 0, 0, Math.PI*2);
+      ctx.strokeStyle='rgba(180,140,60,0.3)';
+      ctx.lineWidth=1;
+      ctx.stroke();
+      ctx.restore();
+
+      // body edge highlight
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(cx-candleW/2, candleTopY, candleW, candleH, [8,8,4,4]);
+      ctx.strokeStyle='rgba(200,170,100,0.35)';
+      ctx.lineWidth=1;
+      ctx.stroke();
+      // left edge specular
+      ctx.beginPath();
+      ctx.moveTo(cx-candleW/2+3, candleTopY+12);
+      ctx.lineTo(cx-candleW/2+3, candleTopY+candleH*0.7);
+      ctx.strokeStyle='rgba(255,248,220,0.18)';
+      ctx.lineWidth=2;
+      ctx.stroke();
+      ctx.restore();
+
+      // === WICK ===
+      const wickH=extinguished?7:11;
+      const wickBurnPct = Math.min(1, meltPct * 2); // wick appears shorter as it burns
+      const visibleWickH = wickH * (1 - wickBurnPct * 0.4);
+      ctx.save();
+      // wick base glow (ember) when burning
+      if(!extinguished){
+        ctx.beginPath();
+        ctx.arc(cx+(flicker*0.2),candleTopY+meltPoolDepth*0.4,3,0,Math.PI*2);
+        ctx.fillStyle='rgba(255,150,30,0.5)';
+        ctx.fill();
+      }
+      ctx.strokeStyle=extinguished?'#5a4a28':'#1a0e04';
+      ctx.lineWidth=1.8;
+      ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(cx, candleTopY+meltPoolDepth*0.5);
+      ctx.quadraticCurveTo(cx+1.5, candleTopY+meltPoolDepth*0.5-visibleWickH*0.5, cx+(extinguished?0:flicker*0.25), candleTopY+meltPoolDepth*0.5-visibleWickH);
+      ctx.stroke();
+      // charred tip
+      ctx.beginPath();
+      ctx.arc(cx+(extinguished?0:flicker*0.25), candleTopY+meltPoolDepth*0.5-visibleWickH, 1.2, 0, Math.PI*2);
+      ctx.fillStyle=extinguished?'#3a2a10':'rgba(255,120,20,0.8)';
+      ctx.fill();
+      ctx.restore();
+
+      // reset glow animation
+      if(justReset&&resetAnim<1){
+        resetAnim+=0.025;
+        const ra=Math.sin(resetAnim*Math.PI);
+        ctx.save();
+        ctx.globalAlpha=ra*0.6;
+        const rg=ctx.createRadialGradient(cx,candleTopY,2,cx,candleTopY,50*ra);
+        rg.addColorStop(0,'rgba(212,175,55,0.8)');
+        rg.addColorStop(0.5,'rgba(192,132,252,0.4)');
+        rg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.beginPath();ctx.arc(cx,candleTopY,50*ra,0,Math.PI*2);
+        ctx.fillStyle=rg;ctx.fill();
+        ctx.restore();
+        if(resetAnim>=1) justReset=false;
+      }
+    }
+
+    // === FLAME ===
+    if(!extinguished && candleH>2){
+      const fx=cx+flicker*0.5;
+      const fy=candleTopY-10;
+      const fh=22+Math.sin(flickerPhase*1.3)*4;
+      const fw=10+Math.sin(flicker2)*2;
+
+      // outer flame glow
+      const og=ctx.createRadialGradient(fx,fy,0,fx,fy+fh*0.3,fw*3.5);
+      og.addColorStop(0,'rgba(255,200,60,0.45)');
+      og.addColorStop(0.4,'rgba(255,120,20,0.2)');
+      og.addColorStop(0.7,'rgba(180,60,200,0.08)');
+      og.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath();ctx.ellipse(fx,fy+fh*0.3,fw*3.5,fh*2,0,0,Math.PI*2);
+      ctx.fillStyle=og;ctx.fill();
+
+      // main flame body
+      ctx.save();
+      const fg=ctx.createLinearGradient(fx,fy-fh,fx,fy+8);
+      fg.addColorStop(0,'rgba(255,255,220,0.95)');
+      fg.addColorStop(0.2,'rgba(255,220,80,0.92)');
+      fg.addColorStop(0.55,'rgba(255,130,30,0.88)');
+      fg.addColorStop(0.85,'rgba(220,60,10,0.5)');
+      fg.addColorStop(1,'rgba(180,40,0,0)');
+      ctx.beginPath();
+      ctx.moveTo(fx,fy-fh);
+      ctx.bezierCurveTo(fx+fw,fy-fh*0.4, fx+fw*0.9,fy+4, fx,fy+8);
+      ctx.bezierCurveTo(fx-fw*0.9,fy+4, fx-fw,fy-fh*0.4, fx,fy-fh);
+      ctx.fillStyle=fg;
+      ctx.fill();
+      ctx.restore();
+
+      // inner hot core
+      ctx.save();
+      const ig=ctx.createLinearGradient(fx,fy-fh*0.7,fx,fy+4);
+      ig.addColorStop(0,'rgba(255,255,255,0.95)');
+      ig.addColorStop(0.3,'rgba(255,240,150,0.85)');
+      ig.addColorStop(1,'rgba(255,180,50,0)');
+      ctx.beginPath();
+      ctx.moveTo(fx,fy-fh*0.65);
+      ctx.bezierCurveTo(fx+fw*0.45,fy-fh*0.2, fx+fw*0.4,fy+2, fx,fy+5);
+      ctx.bezierCurveTo(fx-fw*0.4,fy+2, fx-fw*0.45,fy-fh*0.2, fx,fy-fh*0.65);
+      ctx.fillStyle=ig;
+      ctx.fill();
+      ctx.restore();
+
+      // sparkles from flame tip
+      if(Math.random()<0.08) addSparkle(fx+(Math.random()-0.5)*4, fy-fh+2);
+    } else if(extinguished){
+      // smoke wisps
+      const t=Date.now()/1000;
+      ctx.save();
+      for(let s=0;s<3;s++){
+        const sy=candleTopY-10-s*14;
+        const sx=cx+Math.sin(t*1.2+s*1.4)*6;
+        ctx.globalAlpha=Math.max(0,(0.25-s*0.07));
+        ctx.beginPath();
+        ctx.arc(sx,sy,4+s*2,0,Math.PI*2);
+        ctx.fillStyle='rgba(200,180,220,0.4)';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // sparkles
+    sparkles.forEach(s=>{
+      s.x+=s.vx; s.y+=s.vy; s.vy+=0.04; s.life-=s.decay;
+      ctx.save();
+      ctx.globalAlpha=Math.max(0,s.life)*0.9;
+      ctx.fillStyle='#FFE080';
+      ctx.beginPath();ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    });
+    sparkles=sparkles.filter(s=>s.life>0);
+
+    animFrame=setTimeout(()=>requestAnimationFrame(drawCandle), 33);
+  }
+
+  // sync with pomodoro
+  window.candleSync=function(leftSec, totalSec, running){
+    meltPct=totalSec>0?Math.max(0,Math.min(1,1-(leftSec/totalSec))):0;
+    extinguished=!running&&leftSec===totalSec; // not started yet = lit but not melting
+    if(leftSec<=0&&totalSec>0) extinguished=true;
+
+    const minLeft=Math.floor(leftSec/60);
+    const secLeft=(leftSec%60).toString().padStart(2,'0');
+    const pctBurned=Math.round((1-(leftSec/totalSec))*100);
+    const lbl=document.getElementById('candle-label');
+    const pctEl=document.getElementById('candle-pct');
+    if(lbl){
+      if(leftSec<=0) lbl.textContent='Session complete ✦';
+      else if(!running&&leftSec===totalSec) lbl.textContent='Ready to burn…';
+      else lbl.textContent=minLeft+':'+secLeft+' remaining';
+    }
+    if(pctEl) pctEl.textContent=leftSec>0&&leftSec<totalSec?pctBurned+'% burned':'';
+  };
+
+  window.candleReset=function(){
+    meltPct=0; extinguished=false; drips=[]; sparkles=[];
+    justReset=true; resetAnim=0;
+    const lbl=document.getElementById('candle-label');
+    const pctEl=document.getElementById('candle-pct');
+    if(lbl) lbl.textContent='Ready to burn…';
+    if(pctEl) pctEl.textContent='';
+  };
+
+  drawCandle();
+})();
+
+// ── MYSTIC GARDEN ──
+(function(){
+  const canvas = document.getElementById('garden-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const SEASONS = [
+    { name:'🌸 Spring', sky1:'#1a0535', sky2:'#2d1060', ground:'#1a0f2e', accent:'#C084FC' },
+    { name:'☀ Summer', sky1:'#0d0818', sky2:'#2D1454', ground:'#120b22', accent:'#D4AF37' },
+    { name:'🍂 Autumn', sky1:'#1a0a00', sky2:'#3d1a0a', ground:'#1a0f00', accent:'#E07820' },
+    { name:'❄ Winter', sky1:'#050a18', sky2:'#0d1a35', ground:'#0a0d1a', accent:'#76D7EA' },
+  ];
+  const PLANT_TYPES = [
+    { name:'Moonflower',    colors:['#C084FC','#9B59B6','#E8C0FF'] },
+    { name:'Starbloom',     colors:['#D4AF37','#F0D060','#FFF0A0'] },
+    { name:'Amethyst Fern', colors:['#7C3AED','#A855F7','#C084FC'] },
+    { name:'Rose Crystal',  colors:['#D4608C','#F4A0C0','#FFD0E0'] },
+    { name:'Celestial Lily',colors:['#76D7EA','#2E86AB','#A8E8F0'] },
+  ];
+
+  let season=1, water=5, maxWater=10, blooms=0, magic=0, day=1;
+  let particles=[], plants=[], butterfliesG=[], stars=[], moonGlow=0, sleeping=false, msgTO=null;
+
+  // ── MOONSTONE INVENTORY SYSTEM ──
+  const TOKENS={
+    moonstone:{icon:'🌙',label:'Moonstone',count:0},
+    staressence:{icon:'⭐',label:'Star Essence',count:0},
+    crystaldust:{icon:'💎',label:'Crystal Dust',count:0},
+    petalpearl:{icon:'🌸',label:'Petal Pearl',count:0},
+  };
+  const UNLOCKS=[
+    {id:'rareBloom',icon:'🌺',label:'Rare Bloom',desc:'Unlock Lunar Rose plant',cost:{moonstone:3,staressence:2},owned:false,
+      apply:()=>{PLANT_TYPES.push({name:'Lunar Rose',colors:['#FF6EB4','#FFB3DA','#FFF0F8']});showGMsg('🌺 Lunar Rose unlocked — plant your rare seed!');}},
+    {id:'goldenSoil',icon:'✨',label:'Golden Soil',desc:'Double water capacity',cost:{moonstone:2,crystaldust:2},owned:false,
+      apply:()=>{maxWater=20;water=Math.min(water+5,maxWater);updateStats();showGMsg('✨ Golden Soil — water capacity doubled!');}},
+    {id:'starShower',icon:'🌠',label:'Star Shower',desc:'Instant full moonlight blessing',cost:{staressence:3,petalpearl:1},owned:false,
+      apply:()=>{moonGlow=3;plants.forEach(p=>{p.moonlit=true;if(p.stage>0&&p.stage<3)p.stage=Math.min(3,p.stage+1);});magic=Math.min(100,magic+30);updateStats();showGMsg('🌠 Star Shower — all plants blessed!');}},
+    {id:'crystalGarden',icon:'💫',label:'Crystal Garden',desc:'Plants grow 2× faster',cost:{crystaldust:4,moonstone:2},owned:false,
+      apply:()=>{plants.forEach(p=>{if(p.stage>0&&p.stage<3)p.stage=Math.min(3,p.stage+1);});showGMsg('💫 Crystal Garden — growth surges through the earth!');}},
+    {id:'petalRain',icon:'🌧',label:'Petal Rain',desc:'Refill water + 3 butterflies',cost:{petalpearl:3},owned:false,
+      apply:()=>{water=maxWater;for(let i=0;i<3;i++)setTimeout(()=>addButterflyG(),i*300);updateStats();showGMsg('🌧 Petal Rain — water refilled, butterflies arrive!');}},
+  ];
+
+  // which token a plant type gives on harvest
+  const HARVEST_TOKENS={
+    'Moonflower':'moonstone',
+    'Starbloom':'staressence',
+    'Amethyst Fern':'crystaldust',
+    'Rose Crystal':'petalpearl',
+    'Celestial Lily':'moonstone',
+    'Lunar Rose':'staressence',
+  };
+
+  function addToken(type,amount=1){
+    if(TOKENS[type]) TOKENS[type].count+=amount;
+    renderInventory();
+  }
+  function canAfford(cost){return Object.entries(cost).every(([k,v])=>TOKENS[k]&&TOKENS[k].count>=v);}
+  function spendTokens(cost){Object.entries(cost).forEach(([k,v])=>{if(TOKENS[k])TOKENS[k].count=Math.max(0,TOKENS[k].count-v);});}
+
+  function renderInventory(){
+    const tokRow=document.getElementById('inv-tokens-row');
+    const unlRow=document.getElementById('inv-unlocks-row');
+    if(!tokRow||!unlRow) return;
+    tokRow.innerHTML=Object.entries(TOKENS).map(([k,t])=>`
+      <div class="inv-token ${t.count>0?'has':''}">
+        <span>${t.icon}</span>
+        <span class="tok-count">${t.count}</span>
+        <span>${t.label}</span>
+      </div>`).join('');
+    unlRow.innerHTML=UNLOCKS.map(u=>`
+      <button class="unlock-btn ${u.owned?'owned':canAfford(u.cost)?'affordable':''}"
+        onclick="${u.owned?'':'tryUnlock(\''+u.id+'\')'}" title="${u.desc}">
+        <span>${u.icon}</span>
+        <span>${u.owned?'✓ '+u.label:u.label+' ('+Object.entries(u.cost).map(([k,v])=>TOKENS[k].icon+v).join(' ')+')'}</span>
+      </button>`).join('');
+  }
+
+  function tryUnlock(id){
+    const u=UNLOCKS.find(x=>x.id===id);
+    if(!u||u.owned) return;
+    if(!canAfford(u.cost)){showGMsg('💎 Not enough essences — keep harvesting!');return;}
+    spendTokens(u.cost);
+    u.owned=true;
+    u.apply();
+    renderInventory();
+    notify('✦ Unlocked: '+u.label+'!');
+  }
+
+  function toggleInventory(){
+    const inv=document.getElementById('garden-inventory');
+    const isOpen=inv.classList.toggle('open');
+    if(isOpen) renderInventory();
+  }
+
+  window.toggleInventory=toggleInventory;
+  window.tryUnlock=tryUnlock;
+
+  function initStars(){
+    stars=[];
+    for(let i=0;i<40;i++) stars.push({x:Math.random()*W,y:Math.random()*(H*0.6),r:Math.random()*1.2+0.3,twinkle:Math.random()*Math.PI*2,speed:0.03+Math.random()*0.04});
+  }
+  function initPlants(){
+    plants=[];
+    [40,90,150,210,270,310].forEach(x=>{
+      const t=PLANT_TYPES[Math.floor(Math.random()*PLANT_TYPES.length)];
+      plants.push({x,baseY:H-30-Math.random()*15,type:t,stage:Math.random()>0.4?Math.floor(Math.random()*3)+1:0,sway:Math.random()*Math.PI*2,swaySpeed:0.01+Math.random()*0.01,watered:false,moonlit:false,glowPulse:Math.random()*Math.PI*2});
+    });
+  }
+  initStars(); initPlants();
+
+  function addButterflyG(){
+    const colors=['#C084FC','#D4AF37','#D4608C','#76D7EA'];
+    butterfliesG.push({x:Math.random()<0.5?-20:W+20,y:40+Math.random()*(H-100),vx:(Math.random()*0.8+0.4)*(Math.random()<0.5?1:-1),vy:(Math.random()-0.5)*0.4,color:colors[Math.floor(Math.random()*colors.length)],wingPhase:Math.random()*Math.PI*2,life:300+Math.random()*200,size:5+Math.random()*5});
+  }
+  function addParticleG(x,y,color){
+    for(let i=0;i<8;i++){const angle=(Math.PI*2/8)*i+Math.random()*0.3;const speed=0.8+Math.random()*1.5;particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-1,color,life:1,decay:0.03+Math.random()*0.02,size:2+Math.random()*2});}
+  }
+  function addWaterDrop(x,y){
+    for(let i=0;i<5;i++) particles.push({x:x+(Math.random()-0.5)*10,y,vx:(Math.random()-0.5)*1.5,vy:-1-Math.random()*2,color:'#76D7EA',life:1,decay:0.04,size:2+Math.random()*1.5,type:'drop'});
+  }
+
+  function drawSky(){const s=SEASONS[season];const g=ctx.createLinearGradient(0,0,0,H*0.65);g.addColorStop(0,s.sky1);g.addColorStop(1,s.sky2);ctx.fillStyle=g;ctx.fillRect(0,0,W,H*0.65);}
+  function drawGround(){const s=SEASONS[season];const g=ctx.createLinearGradient(0,H*0.62,0,H);g.addColorStop(0,s.ground);g.addColorStop(1,'#0a0510');ctx.fillStyle=g;ctx.fillRect(0,H*0.62,W,H*0.38);ctx.fillStyle=season===3?'rgba(180,210,240,0.08)':'rgba(107,33,168,0.12)';ctx.fillRect(0,H*0.62,W,4);}
+  function drawMoon(){const t=Date.now()/1000;const pulse=Math.sin(t*1.5)*0.3+0.7+moonGlow*0.5;ctx.save();ctx.globalAlpha=pulse*0.9;ctx.beginPath();ctx.arc(W-45,30,18,0,Math.PI*2);ctx.fillStyle=season===3?'#AED6F1':'#F0E0A0';ctx.fill();ctx.globalAlpha=(moonGlow>0?0.3:0.08)*pulse;ctx.beginPath();ctx.arc(W-45,30,28,0,Math.PI*2);ctx.fillStyle=season===3?'#76D7EA':'#D4AF37';ctx.fill();ctx.globalAlpha=1;ctx.restore();if(moonGlow>0) moonGlow=Math.max(0,moonGlow-0.005);}
+  function drawStars(){stars.forEach(s=>{s.twinkle+=s.speed;const alpha=(Math.sin(s.twinkle)*0.4+0.6)*(season===3?1:0.7);ctx.globalAlpha=alpha;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;});}
+
+  function drawPlant(p){
+    if(p.stage===0){ctx.save();ctx.globalAlpha=0.5;ctx.fillStyle=p.type.colors[0];ctx.beginPath();ctx.arc(p.x,p.baseY,3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.restore();return;}
+    p.sway+=p.swaySpeed; p.glowPulse+=0.04;
+    const sw=Math.sin(p.sway)*2;
+    const h=p.stage===1?20:p.stage===2?38:55;
+    ctx.save();ctx.strokeStyle=p.type.colors[0];ctx.lineWidth=p.stage===3?2.5:1.5;ctx.globalAlpha=0.9;
+    ctx.beginPath();ctx.moveTo(p.x,p.baseY);ctx.quadraticCurveTo(p.x+sw*1.5,p.baseY-h*0.5,p.x+sw,p.baseY-h);ctx.stroke();
+    if(p.stage>=2){[-1,1].forEach(side=>{ctx.beginPath();ctx.moveTo(p.x+sw*0.5,p.baseY-h*0.45);ctx.quadraticCurveTo(p.x+sw*0.5+side*12,p.baseY-h*0.55,p.x+sw*0.5+side*18,p.baseY-h*0.42);ctx.strokeStyle=p.type.colors[2]||p.type.colors[1];ctx.lineWidth=1;ctx.stroke();});}
+    if(p.stage===3){
+      const glow=Math.sin(p.glowPulse)*0.25+0.75;const r=p.watered?9:7;
+      if(p.moonlit||moonGlow>0.3){ctx.globalAlpha=0.2*glow;ctx.beginPath();ctx.arc(p.x+sw,p.baseY-h,r+6,0,Math.PI*2);ctx.fillStyle=p.type.colors[0];ctx.fill();}
+      ctx.globalAlpha=glow;ctx.beginPath();ctx.arc(p.x+sw,p.baseY-h,r,0,Math.PI*2);ctx.fillStyle=p.type.colors[1];ctx.fill();
+      ctx.beginPath();ctx.arc(p.x+sw,p.baseY-h,r*0.5,0,Math.PI*2);ctx.fillStyle=p.type.colors[2]||'#fff';ctx.fill();
+      for(let i=0;i<5;i++){const angle=(Math.PI*2/5)*i+p.sway*0.1;ctx.globalAlpha=glow*0.7;ctx.beginPath();ctx.ellipse(p.x+sw+Math.cos(angle)*(r+3),p.baseY-h+Math.sin(angle)*(r+3),3.5,2,angle,0,Math.PI*2);ctx.fillStyle=p.type.colors[0];ctx.fill();}
+    }
+    ctx.globalAlpha=1;ctx.restore();
+  }
+
+  function drawButterfliesG(){
+    butterfliesG.forEach(b=>{
+      b.wingPhase+=0.18;b.x+=b.vx;b.y+=b.vy+Math.sin(b.wingPhase*0.3)*0.3;b.vy+=(Math.random()-0.5)*0.05;b.vy=Math.max(-1,Math.min(1,b.vy));
+      const wing=Math.abs(Math.cos(b.wingPhase));
+      ctx.save();ctx.globalAlpha=(b.life/500)*0.85;ctx.fillStyle=b.color;
+      [-1,1].forEach(side=>{ctx.beginPath();ctx.ellipse(b.x+side*b.size*wing,b.y,b.size*wing,b.size*0.7,side*0.3,0,Math.PI*2);ctx.fill();});
+      ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.ellipse(b.x,b.y,1.5,b.size*0.5,0,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;ctx.restore();b.life--;
+    });
+    butterfliesG=butterfliesG.filter(b=>b.life>0&&b.x>-50&&b.x<W+50);
+  }
+
+  function drawParticlesG(){
+    particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.05;p.life-=p.decay;ctx.save();ctx.globalAlpha=Math.max(0,p.life)*0.9;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.restore();});
+    particles=particles.filter(p=>p.life>0);
+  }
+
+  // ── COMPANION ──
+  let companion={
+    x:W/2, y:H-45, tx:W/2, ty:H-45,
+    blink:0, blinkTimer:0, tail:0,
+    react:null, reactTimer:0,
+    sparkle:0, idleTimer:0,
+  };
+  function moveCompanionTo(tx,ty){companion.tx=tx;companion.ty=ty;}
+  // ── COMPANION GIF ──
+  let companionImg=new Image(); companionImg.src='https://i.pinimg.com/originals/d4/9b/b1/d49bb1b75758d298d2e80a91d475fcf5.gif';
+  window.setCompanionGif=function(url){
+    if(!url){notify('Please paste a GIF link!');return;}
+    companionImg=new Image();
+    companionImg.src=url;
+    showGMsg('🌸 Companion updated~');
+    notify('🐾 New companion set!');
+  };
+
+  function drawCompanion(){
+    const c=companion;
+    c.x+=(c.tx-c.x)*0.03;
+    c.y+=(c.ty-c.y)*0.03;
+    c.tail+=0.07;
+    c.blinkTimer++;
+    if(c.blinkTimer>120){c.blink=1;if(c.blinkTimer>125){c.blink=0;c.blinkTimer=0;}}
+    c.idleTimer++;
+    if(c.idleTimer>180){
+      const p=plants[Math.floor(Math.random()*plants.length)];
+      if(p) moveCompanionTo(p.x,H-45);
+      c.idleTimer=0;
+    }
+    if(c.react){c.reactTimer++;if(c.reactTimer>60){c.react=null;c.reactTimer=0;}}
+
+    const cx=Math.round(c.x), cy=Math.round(c.y);
+    ctx.save();
+
+    // glow aura (always shown)
+    const auraColor=c.react==='harvest'?'rgba(212,175,55,0.35)':moonGlow>0.5?'rgba(192,132,252,0.3)':'rgba(155,89,182,0.15)';
+    ctx.beginPath();ctx.arc(cx,cy-16,26,0,Math.PI*2);
+    ctx.fillStyle=auraColor;ctx.fill();
+
+    if(companionImg&&companionImg.complete&&companionImg.naturalWidth>0){
+      // draw the gif!
+      const size=48;
+      ctx.drawImage(companionImg,cx-size/2,cy-size,size,size);
+    } else {
+      // fallback paw print if no gif set yet
+      ctx.fillStyle='rgba(192,132,252,0.6)';
+      ctx.font='22px serif';ctx.textAlign='center';
+      ctx.fillText('🐾',cx,cy-8);
+    }
+
+    // harvest sparkles on top of gif
+    if(c.react==='harvest'){
+      c.sparkle+=0.3;
+      ['#D4AF37','#C084FC','#F4A0C0'].forEach((col,i)=>{
+        const angle=c.sparkle+i*(Math.PI*2/3);
+        ctx.beginPath();ctx.arc(cx+Math.cos(angle)*22,cy-20+Math.sin(angle)*14,2.5,0,Math.PI*2);
+        ctx.fillStyle=col;ctx.globalAlpha=0.9;ctx.fill();
+        ctx.globalAlpha=1;
+      });
+    }
+
+    ctx.restore();
+  }
+
+  function drawSleepZzz(){
+    if(!sleeping)return;const t=Date.now()/1000;
+    ['z','z','Z'].forEach((z,i)=>{ctx.save();ctx.globalAlpha=Math.sin(t*1.2-i*0.8)*0.4+0.5;ctx.fillStyle='#C084FC';ctx.font=`${11+i*3}px sans-serif`;ctx.fillText(z,W/2-10+i*14,50-i*12+Math.sin(t+i)*4);ctx.globalAlpha=1;ctx.restore();});
+  }
+
+  function drawG(){ctx.clearRect(0,0,W,H);drawSky();drawStars();drawMoon();drawGround();plants.forEach(drawPlant);drawButterfliesG();drawParticlesG();drawCompanion();drawSleepZzz();requestAnimationFrame(drawG);}
+  drawG();
+
+  function updateStats(){
+    document.getElementById('stat-water').textContent=water+'/'+maxWater;
+    document.getElementById('stat-bloom').textContent=blooms;
+    document.getElementById('stat-magic').textContent=Math.round(magic)+'%';
+    document.getElementById('stat-day').textContent=day;
+  }
+  function showGMsg(msg){
+    document.getElementById('g-msg').innerHTML=msg;
+    clearTimeout(msgTO);
+    msgTO=setTimeout(()=>{document.getElementById('g-msg').innerHTML='✦ Tend your mystic garden with love...';},3000);
+  }
+
+  window.doWater=function(){
+    if(water<=0){showGMsg('💧 No water left — rest the garden to refill!');return;}
+    if(sleeping){showGMsg('🌙 Let the garden sleep...');return;}
+    water=Math.max(0,water-1);
+    plants.forEach(p=>{
+      if(p.stage>0&&p.stage<3){if(Math.random()>0.3){p.stage=Math.min(3,p.stage+1);p.watered=true;}addWaterDrop(p.x,p.baseY-20);if(p.stage===3){blooms++;addParticleG(p.x,p.baseY-55,p.type.colors[0]);}}
+      else if(p.stage===0&&Math.random()>0.5){p.stage=1;addWaterDrop(p.x,p.baseY);}
+    });
+    magic=Math.min(100,magic+8);updateStats();showGMsg('💧 You watered the garden with gentle care~');
+  };
+  window.doMoonlight=function(){
+    moonGlow=1.5;plants.forEach(p=>{p.moonlit=true;addParticleG(p.x,p.baseY-40,'#D4AF37');});
+    magic=Math.min(100,magic+15);updateStats();showGMsg('🌙 Moonlight blesses your garden~ Magic surges!');
+  };
+  const HARVEST_LORE={
+    'Moonflower':'Clarity fills the air — your intuition sharpens tonight.',
+    'Starbloom':'A wish rises with every petal released to the sky.',
+    'Amethyst Fern':'Ancient wisdom flows back into the earth, renewed.',
+    'Rose Crystal':'Love you gave returns to you tenfold, softly.',
+    'Celestial Lily':'The heavens take note of your devotion.',
+  };
+  window.doHarvest=function(){
+    const bl=plants.filter(p=>p.stage===3);
+    if(!bl.length){showGMsg('✨ Nothing to harvest yet — keep tending!');return;}
+    bl.forEach((p,i)=>{
+      setTimeout(()=>{
+        // rising bloom particles
+        for(let r=0;r<5;r++){
+          setTimeout(()=>{
+            addParticleG(p.x+(Math.random()-0.5)*10,p.baseY-55,p.type.colors[0]);
+            addParticleG(p.x+(Math.random()-0.5)*10,p.baseY-55,p.type.colors[1]);
+            // rising star burst
+            particles.push({x:p.x,y:p.baseY-55,vx:(Math.random()-0.5)*2,vy:-2-Math.random()*2,color:'#F0D060',life:1,decay:0.025,size:3});
+          },r*120);
+        }
+        // shoot a star across the canvas
+        const starX=p.x, starY=p.baseY-55;
+        let sx=starX,sy=starY,sv=6;
+        const shootInterval=setInterval(()=>{
+          particles.push({x:sx,y:sy,vx:0,vy:0,color:'rgba(255,240,180,0.7)',life:0.8,decay:0.12,size:2});
+          sx+=sv; sy-=sv*0.4;
+          if(sx>W+20) clearInterval(shootInterval);
+        },30);
+        const lore=HARVEST_LORE[p.type.name]||'The garden thanks you for your care.';
+        const tokenType=HARVEST_TOKENS[p.type.name]||'moonstone';
+        const tok=TOKENS[tokenType];
+        addToken(tokenType,1);
+        showGMsg('✨ '+p.type.name+' → '+tok.icon+' +1 '+tok.label+' — <em style="color:rgba(212,175,55,.8)">'+lore+'</em>');
+        p.stage=1;p.watered=false;p.moonlit=false;
+        // companion reacts
+        if(companion) companion.react='harvest';
+      },i*600);
+    });
+    magic=Math.min(100,magic+bl.length*10);updateStats();
+  };
+  window.doPlant=function(){
+    const empty=plants.filter(p=>p.stage===0);
+    if(!empty.length){showGMsg('🌿 The garden is full — harvest first!');return;}
+    if(water<1){showGMsg('🌿 Not enough water to plant new seeds!');return;}
+    const t=PLANT_TYPES[Math.floor(Math.random()*PLANT_TYPES.length)];
+    const p=empty[Math.floor(Math.random()*empty.length)];
+    p.type=t;water=Math.max(0,water-1);
+    setTimeout(()=>{p.stage=1;addParticleG(p.x,p.baseY,t.colors[0]);},500);
+    updateStats();showGMsg('🌿 Planted a '+t.name+' seed with intention~');
+  };
+  window.doButterfly=function(){
+    for(let i=0;i<3;i++) setTimeout(()=>addButterflyG(),i*400);
+    magic=Math.min(100,magic+5);updateStats();showGMsg('🦋 Butterflies dance among your flowers~');
+  };
+  window.doSleep=function(){
+    if(sleeping){
+      sleeping=false;water=Math.min(maxWater,water+4);day++;
+      plants.forEach(p=>{if(p.stage>0&&p.stage<3&&Math.random()>0.5)p.stage=Math.min(3,p.stage+1);});
+      updateStats();showGMsg('🌙 A new day dawns~ Garden refreshed! (+4 water)');
+    } else {
+      sleeping=true;showGMsg('🌙 The garden rests under starlight...');
+      setTimeout(()=>{if(sleeping)window.doSleep();},4000);
+    }
+  };
+  window.setSeason=function(i){
+    season=i;document.querySelectorAll('.season-dot').forEach((d,j)=>d.classList.toggle('active',j===i));
+    const labels=['🌸 Spring','☀ Summer','🍂 Autumn','❄ Winter'];
+    document.getElementById('season-label').textContent=labels[i];
+    showGMsg('✦ The garden shifts into a new season~');
+  };
+
+  canvas.addEventListener('click',e=>{
+    const rect=canvas.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(W/rect.width);
+    const my=(e.clientY-rect.top)*(H/rect.height);
+    plants.forEach(p=>{
+      if(Math.abs(mx-p.x)<20&&Math.abs(my-p.baseY)<30){
+        showGMsg(p.stage===3?'✦ '+p.type.name+' — blooming beautifully~':'🌿 '+(p.stage===0?'A seed waiting to bloom...':p.type.name+' is growing~'));
+      }
+    });
+  });
+
+  updateStats();
+})();
+
+let ytMuted = false;
+function toggleYTMute(){
+  ytMuted = !ytMuted;
+  const iframe = document.getElementById('yt-frame');
+  const ytid = iframe.dataset.ytid;
+  if(!ytid) return;
+  const base = YT_PROXIES[proxyIndex];
+  iframe.src = base + ytid + '?autoplay=1&mute=' + (ytMuted?1:0) + '&loop=1&playlist=' + ytid + '&vq=hd720&modestbranding=1&rel=0';
+  document.getElementById('yt-mute-btn').textContent = ytMuted ? '🔇 Unmute' : '🔊 Mute';
+  notify(ytMuted ? '🔇 YouTube muted' : '🔊 YouTube unmuted');
+}
+
+</script>
+</body>
+</html>
