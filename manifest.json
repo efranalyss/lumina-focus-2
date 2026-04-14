@@ -2,7 +2,7 @@
   "name": "Lumina Focus",
   "short_name": "Lumina",
   "description": "Your celestial focus space",
-  "start_url": "./index.html",
+  "start_url": "/lumina-focus-2/index.html",
   "display": "fullscreen",
   "background_color": "#0D0818",
   "theme_color": "#D4AF37",
