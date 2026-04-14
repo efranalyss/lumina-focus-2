@@ -1,7 +1,8 @@
 const CACHE = 'lumina-v1';
 const FILES = [
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './sw.js'
 ];
 
 self.addEventListener('install', e => {
